@@ -1,0 +1,2879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AURA BEAT CRITIC v2 — Mix Analyzer &amp; FL Studio Advisor</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --bg: #07070c;
+    --glass: rgba(255,255,255,0.042);
+    --glass-2: rgba(255,255,255,0.028);
+    --line: rgba(255,255,255,0.075);
+    --line-2: rgba(255,255,255,0.14);
+    --accent: #a855f7;
+    --accent-2: #ec4899;
+    --accent-3: #f97316;
+    --accent-soft: rgba(168,85,247,0.12);
+    --cyan: #22d3ee;
+    --green: #34d399;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --text: #e8eaf2;
+    --dim: #9aa3b8;
+    --muted: #646c84;
+    --r: 18px;
+    --r-sm: 11px;
+    --mono: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background:
+        radial-gradient(1100px 620px at 12% -10%, rgba(168,85,247,0.16), transparent 62%),
+        radial-gradient(900px 520px at 92% 4%, rgba(236,72,153,0.10), transparent 60%),
+        radial-gradient(800px 600px at 50% 110%, rgba(34,211,238,0.07), transparent 62%),
+        #07070c;
+    background-attachment: fixed;
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.18); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(168,85,247,0.32); }
+* { scrollbar-width: thin; scrollbar-color: rgba(168,85,247,0.2) transparent; }
+
+#particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .75; }
+
+.container { position: relative; z-index: 1; max-width: 1120px; margin: 0 auto; padding: 46px 22px 90px; }
+
+/* ── Header ── */
+.header { text-align: center; margin-bottom: 38px; }
+.brandline {
+    display: inline-flex; align-items: center; gap: 9px;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 2.6px;
+    text-transform: uppercase; color: var(--dim); margin-bottom: 14px;
+}
+.brandline .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 12px var(--accent);
+    animation: blink 2.4s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+.ver {
+    font-size: 0.6rem; letter-spacing: 1px; padding: 2px 7px; border-radius: 5px;
+    background: var(--accent-soft); color: #c084fc; border: 1px solid rgba(168,85,247,0.28);
+}
+.header h1 {
+    font-size: clamp(1.75rem, 4.4vw, 2.9rem); font-weight: 800; letter-spacing: -1.2px;
+    line-height: 1.1;
+    background: linear-gradient(112deg, #fff 8%, #c084fc 42%, #ec4899 68%, #f97316 96%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.header .sub {
+    color: var(--dim); font-size: 0.95rem; margin-top: 12px; line-height: 1.6;
+    max-width: 680px; margin-left: auto; margin-right: auto;
+}
+.header .sub em { color: #c084fc; font-style: normal; font-weight: 600; }
+
+/* ── Glass ── */
+.glass {
+    background: var(--glass); border: 1px solid var(--line);
+    border-radius: var(--r); padding: 26px;
+    backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
+    margin-bottom: 20px;
+}
+.glass-title {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    font-size: 0.98rem; font-weight: 700; margin-bottom: 18px;
+}
+.glass-title .tag {
+    margin-left: auto; font-size: 0.66rem; letter-spacing: 1.1px; font-weight: 700;
+    text-transform: uppercase; color: var(--muted);
+    border: 1px solid var(--line); padding: 3px 9px; border-radius: 20px;
+}
+
+/* ── Upload ── */
+.upload-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 14px; }
+@media (max-width: 780px) { .upload-grid { grid-template-columns: 1fr; } }
+
+.upload-zone {
+    border: 1.5px dashed rgba(168,85,247,0.28); border-radius: var(--r-sm);
+    padding: 34px 20px; text-align: center; cursor: pointer;
+    transition: all .22s ease; background: rgba(168,85,247,0.028);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 132px;
+}
+.upload-zone:hover, .upload-zone.dragover {
+    border-color: var(--accent); background: var(--accent-soft);
+    transform: translateY(-2px); box-shadow: 0 10px 34px rgba(168,85,247,0.14);
+}
+.upload-zone .icon { font-size: 1.9rem; margin-bottom: 9px; filter: saturate(1.1); }
+.upload-zone .label { font-size: 0.9rem; color: var(--dim); line-height: 1.5; }
+.upload-zone .label strong { color: #d8b4fe; font-weight: 600; }
+.upload-zone .formats { font-size: 0.7rem; color: var(--muted); margin-top: 7px; letter-spacing: .4px; }
+.upload-zone.ref { border-color: rgba(34,211,238,0.24); background: rgba(34,211,238,0.022); }
+.upload-zone.ref:hover, .upload-zone.ref.dragover {
+    border-color: var(--cyan); background: rgba(34,211,238,0.07);
+    box-shadow: 0 10px 34px rgba(34,211,238,0.12);
+}
+.upload-zone.ref .label strong { color: #a5f3fc; }
+input[type=file] { display: none; }
+
+/* ── Player rows ── */
+.prow {
+    display: none; align-items: center; gap: 12px; margin-top: 14px;
+    padding: 11px 14px; border-radius: var(--r-sm);
+    background: var(--glass-2); border: 1px solid var(--line);
+}
+.prow.visible { display: flex; }
+.prow.ref { border-color: rgba(34,211,238,0.16); }
+.prow .pinfo { min-width: 0; flex: 0 1 auto; max-width: 220px; }
+.prow .pname {
+    font-size: 0.82rem; font-weight: 600; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+}
+.prow .pmeta { font-size: 0.68rem; color: var(--muted); margin-top: 2px; font-family: var(--mono); }
+.prow .wave {
+    flex: 1 1 auto; height: 34px; border-radius: 6px; overflow: hidden;
+    position: relative; cursor: pointer; background: rgba(0,0,0,0.28); min-width: 60px;
+}
+.prow .wave canvas { width: 100%; height: 100%; display: block; }
+.prow .ph {
+    position: absolute; top: 0; bottom: 0; width: 2px; left: 0;
+    background: #fff; box-shadow: 0 0 9px rgba(255,255,255,.65); pointer-events: none;
+}
+.prow.ref .ph { background: var(--cyan); box-shadow: 0 0 9px rgba(34,211,238,.7); }
+.prow .ptime {
+    font-size: 0.7rem; color: var(--muted); font-family: var(--mono);
+    min-width: 76px; text-align: right;
+}
+
+/* ── Buttons ── */
+.btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 12px 22px; border: none; border-radius: var(--r-sm);
+    font-size: 0.88rem; font-weight: 650; cursor: pointer;
+    transition: all .18s ease; font-family: inherit; letter-spacing: .2px;
+}
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff; box-shadow: 0 6px 22px rgba(168,85,247,0.34);
+}
+.btn-primary:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+.btn-primary:disabled { opacity: .32; cursor: not-allowed; box-shadow: none; }
+.btn-ghost {
+    background: rgba(255,255,255,0.055); color: var(--text);
+    border: 1px solid var(--line);
+}
+.btn-ghost:hover { background: rgba(255,255,255,0.1); border-color: var(--line-2); }
+.btn-sm { padding: 8px 14px; font-size: 0.78rem; }
+.btn-icon {
+    width: 34px; height: 34px; padding: 0; flex: 0 0 34px;
+    background: rgba(255,255,255,0.07); border: 1px solid var(--line);
+    color: var(--text); border-radius: 9px; font-size: .8rem;
+}
+.btn-icon:hover { background: rgba(255,255,255,0.13); }
+.actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; align-items: center; }
+.actions .hint { font-size: 0.7rem; color: var(--muted); margin-left: auto; }
+kbd {
+    font-family: var(--mono); font-size: 0.66rem; padding: 2px 5px;
+    border: 1px solid var(--line-2); border-bottom-width: 2px;
+    border-radius: 4px; background: rgba(255,255,255,0.05); color: var(--dim);
+}
+
+/* ── Progress ── */
+#progress-wrap { display: none; }
+#progress-wrap.visible { display: block; }
+.pbar { height: 5px; background: rgba(255,255,255,0.07); border-radius: 4px; overflow: hidden; }
+.pfill {
+    height: 100%; width: 0%; border-radius: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3));
+    transition: width .35s ease;
+    box-shadow: 0 0 14px rgba(168,85,247,.5);
+}
+.plabel {
+    font-size: 0.8rem; color: var(--dim); margin-bottom: 10px;
+    display: flex; justify-content: space-between; gap: 12px;
+}
+.plabel .pct { font-family: var(--mono); color: var(--muted); }
+
+/* ── Results ── */
+#results { display: none; }
+#results.visible { display: block; animation: rise .5s ease; }
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+/* Hero */
+.hero { display: grid; grid-template-columns: 190px 1fr; gap: 28px; align-items: center; }
+@media (max-width: 720px) { .hero { grid-template-columns: 1fr; justify-items: center; text-align: center; } }
+.gauge { position: relative; width: 178px; height: 178px; }
+.gauge svg { transform: rotate(-90deg); }
+.gauge .gv {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+}
+.gauge .gnum { font-size: 2.9rem; font-weight: 800; line-height: 1; letter-spacing: -2px; }
+.gauge .glab { font-size: 0.62rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+.grade {
+    display: inline-flex; align-items: center; gap: 8px; padding: 7px 16px;
+    border-radius: 40px; font-size: 0.82rem; font-weight: 700; margin-bottom: 12px;
+}
+.verdict-text { font-size: 1.02rem; line-height: 1.62; color: var(--text); }
+.verdict-text strong { color: #fff; }
+
+/* Category bars */
+.cats { display: grid; grid-template-columns: repeat(auto-fit, minmax(152px, 1fr)); gap: 8px 18px; margin-top: 22px; }
+.cat { font-size: 0.72rem; }
+.cat .cl { display: flex; justify-content: space-between; margin-bottom: 5px; color: var(--dim); }
+.cat .cv { font-family: var(--mono); font-weight: 700; }
+.cat .cb { height: 4px; background: rgba(255,255,255,0.07); border-radius: 3px; overflow: hidden; }
+.cat .cf { height: 100%; border-radius: 3px; width: 0; transition: width .8s cubic-bezier(.2,.8,.2,1); }
+
+/* Stat tiles */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 10px; }
+.tile {
+    padding: 14px 15px; border-radius: var(--r-sm);
+    background: var(--glass-2); border: 1px solid var(--line);
+}
+.tile .tl { font-size: 0.64rem; letter-spacing: 1.1px; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.tile .tv { font-size: 1.42rem; font-weight: 750; margin: 5px 0 2px; font-variant-numeric: tabular-nums; letter-spacing: -.5px; }
+.tile .tv small { font-size: 0.7rem; font-weight: 600; opacity: .6; margin-left: 2px; }
+.tile .tn { font-size: 0.68rem; color: var(--muted); line-height: 1.35; }
+.tile.good { border-color: rgba(52,211,153,0.22); background: rgba(52,211,153,0.045); }
+.tile.warn { border-color: rgba(251,191,36,0.22); background: rgba(251,191,36,0.045); }
+.tile.bad  { border-color: rgba(248,113,113,0.24); background: rgba(248,113,113,0.05); }
+
+/* Canvas */
+.canvas-wrap { position: relative; width: 100%; }
+.canvas-wrap canvas { width: 100%; display: block; border-radius: 9px; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; font-size: 0.7rem; color: var(--muted); }
+.legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+.tip {
+    position: absolute; pointer-events: none; padding: 6px 10px; border-radius: 7px;
+    background: rgba(10,10,18,0.95); border: 1px solid var(--line-2);
+    font-size: 0.7rem; font-family: var(--mono); white-space: nowrap;
+    transform: translate(-50%, -130%); opacity: 0; transition: opacity .12s; z-index: 5;
+}
+.tip.on { opacity: 1; }
+
+/* Band dev bars */
+.bands { display: grid; gap: 6px; margin-top: 16px; }
+.band-row { display: grid; grid-template-columns: 86px 1fr 62px; gap: 10px; align-items: center; font-size: 0.72rem; }
+.band-row .bn { color: var(--dim); font-family: var(--mono); font-size: 0.67rem; }
+.band-track { position: relative; height: 16px; background: rgba(255,255,255,0.035); border-radius: 4px; overflow: hidden; }
+.band-zero { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.22); }
+.band-fill { position: absolute; top: 3px; bottom: 3px; border-radius: 2px; transition: all .7s cubic-bezier(.2,.8,.2,1); }
+.band-row .bv { font-family: var(--mono); text-align: right; font-weight: 700; }
+
+/* Roast cards */
+.roast {
+    padding: 17px 20px; border-radius: var(--r-sm); margin-bottom: 11px;
+    border-left: 3px solid var(--accent); background: var(--glass-2);
+    animation: rise .4s ease backwards;
+}
+.roast.critical { border-left-color: var(--red); background: rgba(248,113,113,0.045); }
+.roast.warning  { border-left-color: var(--amber); background: rgba(251,191,36,0.04); }
+.roast.info     { border-left-color: var(--cyan); background: rgba(34,211,238,0.035); }
+.roast.good     { border-left-color: var(--green); background: rgba(52,211,153,0.035); }
+.roast .rh { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; }
+.roast .ri { font-size: 1.1rem; }
+.roast .rt { font-weight: 700; font-size: 0.92rem; }
+.roast .sev {
+    margin-left: auto; font-size: 0.6rem; font-weight: 800; letter-spacing: 1px;
+    padding: 3px 9px; border-radius: 20px; text-transform: uppercase;
+}
+.sev.critical { background: rgba(248,113,113,0.16); color: var(--red); }
+.sev.warning  { background: rgba(251,191,36,0.16); color: var(--amber); }
+.sev.info     { background: rgba(34,211,238,0.16); color: var(--cyan); }
+.sev.good     { background: rgba(52,211,153,0.16); color: var(--green); }
+.roast .rr { font-size: 0.88rem; color: #c3c9d8; line-height: 1.62; margin-bottom: 11px; }
+.roast .rev {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 11px;
+}
+.roast .rev span {
+    font-family: var(--mono); font-size: 0.66rem; padding: 3px 9px;
+    border-radius: 20px; background: rgba(255,255,255,0.05);
+    border: 1px solid var(--line); color: var(--dim);
+}
+.roast .rev span.hot { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.28); color: #fca5a5; }
+.roast .fix {
+    padding: 11px 14px; border-radius: 8px;
+    background: rgba(168,85,247,0.07); border: 1px solid rgba(168,85,247,0.16);
+    font-size: 0.83rem; line-height: 1.55;
+}
+.roast .fix .fl {
+    font-size: 0.63rem; font-weight: 800; letter-spacing: 1.2px;
+    text-transform: uppercase; color: #c084fc; margin-bottom: 5px;
+}
+.roast .fix code {
+    display: inline-block; margin-top: 6px; background: rgba(168,85,247,0.16);
+    color: #d8b4fe; padding: 3px 8px; border-radius: 5px;
+    font-family: var(--mono); font-size: 0.72rem; line-height: 1.7;
+}
+
+/* A/B table */
+.ab-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.ab-table th {
+    text-align: right; font-size: 0.63rem; letter-spacing: 1.1px; text-transform: uppercase;
+    color: var(--muted); font-weight: 700; padding: 0 0 10px; border-bottom: 1px solid var(--line);
+}
+.ab-table th:first-child { text-align: left; }
+.ab-table td {
+    padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-variant-numeric: tabular-nums; text-align: right;
+}
+.ab-table td:first-child { text-align: left; color: var(--dim); }
+.ab-table td.mine { color: #e9d5ff; font-weight: 650; }
+.ab-table td.refc { color: #a5f3fc; font-weight: 650; }
+.ab-table td.delta { font-family: var(--mono); font-size: 0.74rem; }
+.delta.up { color: var(--amber); }
+.delta.down { color: var(--cyan); }
+.delta.flat { color: var(--muted); }
+
+/* Summary */
+.summary {
+    text-align: center; padding: 30px 26px;
+    background: linear-gradient(140deg, rgba(168,85,247,0.075), rgba(236,72,153,0.055) 55%, rgba(249,115,22,0.045));
+    border: 1px solid rgba(168,85,247,0.18);
+}
+.summary .big { font-size: 1.04rem; line-height: 1.7; font-weight: 500; margin-bottom: 12px; }
+.summary .fine { font-size: 0.72rem; color: var(--muted); line-height: 1.6; }
+
+/* History */
+#history-card { display: none; }
+#history-card.visible { display: block; }
+.hist-list { display: grid; gap: 7px; }
+.hrow {
+    display: grid; grid-template-columns: 34px 1fr auto auto; gap: 12px;
+    align-items: center; padding: 9px 13px; border-radius: 9px;
+    background: var(--glass-2); border: 1px solid var(--line); font-size: 0.78rem;
+}
+.hrow .hs {
+    font-family: var(--mono); font-weight: 800; font-size: 0.8rem;
+    text-align: center; border-radius: 6px; padding: 3px 0;
+}
+.hrow .hn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hrow .hn small { color: var(--muted); font-size: 0.68rem; display: block; margin-top: 1px; }
+.hrow .hm { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); text-align: right; }
+.hrow .hx {
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    font-size: 0.9rem; padding: 0 2px; line-height: 1;
+}
+.hrow .hx:hover { color: var(--red); }
+
+.empty { text-align: center; color: var(--muted); font-size: 0.82rem; padding: 18px; line-height: 1.6; }
+.note {
+    font-size: 0.74rem; color: var(--muted); line-height: 1.6; margin-top: 12px;
+    padding: 10px 13px; border-radius: 8px; background: rgba(255,255,255,0.025);
+    border-left: 2px solid rgba(168,85,247,0.35);
+}
+.note b { color: #c084fc; }
+</style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+
+<div class="container">
+    <header class="header">
+        <div class="brandline"><span class="dot"></span> Aura Beat Critic <span class="ver">v2</span></div>
+        <h1>Your mix, measured. Then roasted.</h1>
+        <p class="sub">
+            Real DSP: <em>ITU-R BS.1770</em> loudness, true-peak oversampling, phase correlation,
+            crest factor, spectral tilt. Fixes name <em>your</em> actual problem frequencies &mdash; not a
+            hardcoded 300&nbsp;Hz. Drop a reference track to A/B against it.
+        </p>
+    </header>
+
+    <!-- UPLOAD -->
+    <section class="glass" id="upload-card">
+        <div class="upload-grid">
+            <div class="upload-zone" id="drop-zone">
+                <div class="icon">🎤</div>
+                <div class="label">Drop your track here or <strong>click to browse</strong></div>
+                <div class="formats">MP3 · WAV · OGG · FLAC · M4A</div>
+            </div>
+            <div class="upload-zone ref" id="ref-zone">
+                <div class="icon">🎯</div>
+                <div class="label"><strong>Reference track</strong><br><span style="font-size:.78rem">optional A/B target</span></div>
+                <div class="formats">FLAC direct from the shop = best</div>
+            </div>
+        </div>
+        <input type="file" id="file-input" accept="audio/*,.mp3,.wav,.ogg,.flac,.m4a">
+        <input type="file" id="ref-input" accept="audio/*,.mp3,.wav,.ogg,.flac,.m4a">
+
+        <div class="prow" id="prow-main">
+            <button class="btn btn-icon" id="btn-play-main" title="Play / Pause (Space)">▶</button>
+            <div class="pinfo">
+                <div class="pname" id="name-main"></div>
+                <div class="pmeta" id="meta-main"></div>
+            </div>
+            <div class="wave" id="wave-main"><canvas id="canv-main"></canvas><div class="ph" id="ph-main"></div></div>
+            <span class="ptime" id="time-main">0:00 / 0:00</span>
+        </div>
+
+        <div class="prow ref" id="prow-ref">
+            <button class="btn btn-icon" id="btn-play-ref" title="Play reference">▶</button>
+            <div class="pinfo">
+                <div class="pname" id="name-ref"></div>
+                <div class="pmeta" id="meta-ref"></div>
+            </div>
+            <div class="wave" id="wave-ref"><canvas id="canv-ref"></canvas><div class="ph" id="ph-ref"></div></div>
+            <span class="ptime" id="time-ref">0:00 / 0:00</span>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" id="btn-analyze" disabled>🔥 Roast my mix</button>
+            <button class="btn btn-ghost btn-sm" id="btn-reset" style="display:none">↻ New track</button>
+            <span class="hint"><kbd>Space</kbd> play · <kbd>R</kbd> analyze</span>
+        </div>
+    </section>
+
+    <!-- PROGRESS -->
+    <div id="progress-wrap">
+        <div class="glass" style="padding:18px 22px">
+            <div class="plabel"><span id="progress-label">Loading…</span><span class="pct" id="progress-pct">0%</span></div>
+            <div class="pbar"><div class="pfill" id="progress-fill"></div></div>
+        </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div id="results">
+
+        <!-- HERO -->
+        <section class="glass">
+            <div class="hero">
+                <div class="gauge">
+                    <svg width="178" height="178" viewBox="0 0 178 178">
+                        <circle cx="89" cy="89" r="76" fill="none" stroke="rgba(255,255,255,0.055)" stroke-width="11"/>
+                        <circle id="gauge-ring" cx="89" cy="89" r="76" fill="none"
+                                stroke="url(#gGrad)" stroke-width="11" stroke-linecap="round"
+                                stroke-dasharray="477.5" stroke-dashoffset="477.5"
+                                style="transition: stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1)"/>
+                        <defs>
+                            <linearGradient id="gGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#a855f7"/>
+                                <stop offset="55%" stop-color="#ec4899"/>
+                                <stop offset="100%" stop-color="#f97316"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div class="gv">
+                        <div class="gnum" id="gauge-num">—</div>
+                        <div class="glab">Mix Score</div>
+                    </div>
+                </div>
+                <div>
+                    <div class="grade" id="grade"></div>
+                    <p class="verdict-text" id="verdict"></p>
+                    <div class="cats" id="cats"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- LOUDNESS -->
+        <section class="glass">
+            <div class="glass-title">Loudness &amp; headroom <span class="tag">ITU-R BS.1770-4</span></div>
+            <div class="tiles" id="loud-tiles"></div>
+            <div class="canvas-wrap" style="margin-top:18px">
+                <canvas id="loud-canvas" height="150"></canvas>
+                <div class="tip" id="loud-tip"></div>
+            </div>
+            <div class="legend">
+                <span><i style="background:#a855f7"></i>Integrated LUFS over time (3s short-term)</span>
+                <span><i style="background:rgba(52,211,153,.45)"></i>Streaming sweet spot</span>
+            </div>
+        </section>
+
+        <!-- SPECTRUM -->
+        <section class="glass">
+            <div class="glass-title">Spectral balance <span class="tag">log FFT · tilt-relative</span></div>
+            <div class="canvas-wrap">
+                <canvas id="spec-canvas" height="240"></canvas>
+                <div class="tip" id="spec-tip"></div>
+            </div>
+            <div class="legend" id="spec-legend">
+                <span><i style="background:#a855f7"></i>Your mix</span>
+                <span><i style="background:rgba(255,255,255,.35)"></i>Pink reference (−3 dB/oct)</span>
+            </div>
+            <div class="bands" id="bands"></div>
+            <div class="note">
+                <b>How to read this:</b> bars show how far each range sits from the mix's own spectral trend.
+                +3&nbsp;dB means "cut ~3&nbsp;dB here". The trend line removes genre bias &mdash; trap and
+                acoustic folk have wildly different tilt, but both can be internally balanced.
+            </div>
+        </section>
+
+        <!-- STEREO -->
+        <section class="glass">
+            <div class="glass-title">Stereo field &amp; phase <span class="tag">mid/side</span></div>
+            <div class="tiles" id="stereo-tiles"></div>
+            <div class="canvas-wrap" style="margin-top:18px">
+                <canvas id="width-canvas" height="132"></canvas>
+                <div class="tip" id="width-tip"></div>
+            </div>
+            <div class="legend"><span><i style="background:#22d3ee"></i>Side/mid ratio per band (higher = wider)</span></div>
+        </section>
+
+        <!-- A/B -->
+        <section class="glass" id="ab-card" style="display:none">
+            <div class="glass-title">Reference comparison <span class="tag" id="ab-ref-name">—</span></div>
+            <table class="ab-table" id="ab-table"></table>
+            <div class="note" id="ab-note"></div>
+        </section>
+
+        <!-- ROASTS -->
+        <section class="glass">
+            <div class="glass-title">👽 The roast <span class="tag" id="roast-count">—</span></div>
+            <div id="roast-list"></div>
+        </section>
+
+        <section class="glass summary">
+            <div class="big" id="summary-text"></div>
+            <div class="fine" id="summary-fine">Aura Beat Critic v2 · everything measured locally in your browser, nothing uploaded</div>
+        </section>
+
+        <div class="actions" style="justify-content:center;margin-bottom:26px">
+            <button class="btn btn-ghost btn-sm" id="btn-export">⤓ Export JSON report</button>
+            <button class="btn btn-ghost btn-sm" id="btn-copy">⧉ Copy as text</button>
+            <button class="btn btn-ghost btn-sm" id="btn-reanalyze">↻ Re-analyze</button>
+        </div>
+    </div>
+
+    <!-- HISTORY -->
+    <section class="glass" id="history-card">
+        <div class="glass-title">Session history <span class="tag" id="hist-count">0</span></div>
+        <div class="hist-list" id="hist-list"></div>
+    </section>
+</div>
+
+<script>
+"use strict";
+/* ═══════════════════════════════════════════════════════════════════════
+   AURA BEAT CRITIC v2
+   Real measurement engine. No fake numbers, no hardcoded "300 Hz".
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ───────────────────────── utils ───────────────────────── */
+const $ = (s, r = document) => r.querySelector(s);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const dbOf = v => 20 * Math.log10(Math.max(v, 1e-12));
+const pdbOf = v => 10 * Math.log10(Math.max(v, 1e-20));
+const fx = (v, d = 1) => Number.isFinite(v) ? v.toFixed(d) : '—';
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+// Yields to the UI so the progress bar moves. Falls back to a timer: requestAnimationFrame
+// stops firing in a background tab, which would otherwise hang analysis forever.
+const nextFrame = () => new Promise(resolve => {
+    let done = false;
+    const finish = () => { if (!done) { done = true; resolve(); } };
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(finish);
+    setTimeout(finish, 40);
+});
+const fmtTime = s => {
+    if (!Number.isFinite(s)) return '0:00';
+    const m = Math.floor(s / 60), ss = Math.floor(s % 60);
+    return m + ':' + String(ss).padStart(2, '0');
+};
+
+/* ═══════════════════════════════════════════════════════════════════════
+   1. FFT — iterative radix-2 Cooley-Tukey
+   Replaces the old O(N²) DFT (2048 bins × 4096 samples × 8 windows = 67M
+   sin/cos calls). This does the same work in ~N log N.
+   ═══════════════════════════════════════════════════════════════════════ */
+class FFT {
+    constructor(n) {
+        if ((n & (n - 1)) !== 0) throw new Error('FFT size must be a power of 2');
+        this.n = n;
+        this.levels = Math.round(Math.log2(n));
+        const half = n >> 1;
+        this.cos = new Float64Array(half);
+        this.sin = new Float64Array(half);
+        for (let i = 0; i < half; i++) {
+            this.cos[i] = Math.cos(2 * Math.PI * i / n);
+            this.sin[i] = Math.sin(2 * Math.PI * i / n);
+        }
+        this.rev = new Uint32Array(n);
+        for (let i = 0; i < n; i++) {
+            let r = 0, x = i;
+            for (let j = 0; j < this.levels; j++) { r = (r << 1) | (x & 1); x >>= 1; }
+            this.rev[i] = r;
+        }
+    }
+    transform(re, im) {
+        const n = this.n, rev = this.rev, cosT = this.cos, sinT = this.sin;
+        for (let i = 0; i < n; i++) {
+            const j = rev[i];
+            if (j > i) {
+                let t = re[i]; re[i] = re[j]; re[j] = t;
+                t = im[i]; im[i] = im[j]; im[j] = t;
+            }
+        }
+        for (let size = 2; size <= n; size <<= 1) {
+            const half = size >> 1, step = n / size;
+            for (let i = 0; i < n; i += size) {
+                for (let j = i, k = 0; j < i + half; j++, k += step) {
+                    const c = cosT[k], s = sinT[k];
+                    const jh = j + half;
+                    const tre = re[jh] * c + im[jh] * s;
+                    const tim = im[jh] * c - re[jh] * s;
+                    re[jh] = re[j] - tre; im[jh] = im[j] - tim;
+                    re[j] += tre; im[j] += tim;
+                }
+            }
+        }
+    }
+}
+
+function hannWindow(n) {
+    const w = new Float64Array(n);
+    for (let i = 0; i < n; i++) w[i] = 0.5 * (1 - Math.cos(2 * Math.PI * i / (n - 1)));
+    return w;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   2. K-weighting (ITU-R BS.1770-4) — derived for ANY sample rate
+   ═══════════════════════════════════════════════════════════════════════ */
+function kWeightCoeffs(fs) {
+    // Stage 1 — high shelf ("head effect")
+    let f0 = 1681.974450955533, G = 3.999843853973347, Q = 0.7071752369554196;
+    let K = Math.tan(Math.PI * f0 / fs);
+    const Vh = Math.pow(10, G / 20);
+    const Vb = Math.pow(Vh, 0.4996667741545416);
+    let a0 = 1 + K / Q + K * K;
+    const s1b = [(Vh + Vb * K / Q + K * K) / a0, 2 * (K * K - Vh) / a0, (Vh - Vb * K / Q + K * K) / a0];
+    const s1a = [1, 2 * (K * K - 1) / a0, (1 - K / Q + K * K) / a0];
+    // Stage 2 — RLB high-pass
+    f0 = 38.13547087602444; Q = 0.5003270373238773;
+    K = Math.tan(Math.PI * f0 / fs);
+    const d = 1 + K / Q + K * K;
+    const s2b = [1, -2, 1];
+    const s2a = [1, 2 * (K * K - 1) / d, (1 - K / Q + K * K) / d];
+    return { s1b, s1a, s2b, s2a };
+}
+
+/* Streaming biquad state (direct form I, a0 normalised out) */
+function bq() { return { x1: 0, x2: 0, y1: 0, y2: 0 }; }
+function bqStep(s, b, a, x) {
+    const y = b[0] * x + b[1] * s.x1 + b[2] * s.x2 - a[1] * s.y1 - a[2] * s.y2;
+    s.x2 = s.x1; s.x1 = x; s.y2 = s.y1; s.y1 = y;
+    return y;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   3. True peak — 4× oversampled via windowed-sinc on peak candidates
+   (sample peak lies to you; intersample peaks are what clip your DAC)
+   ═══════════════════════════════════════════════════════════════════════ */
+function measureTruePeak(data) {
+    const n = data.length;
+    let samplePeak = 0;
+    for (let i = 0; i < n; i++) { const a = Math.abs(data[i]); if (a > samplePeak) samplePeak = a; }
+    if (samplePeak < 1e-6) return { truePeak: 0, samplePeak: 0 };
+
+    // Only candidates within 3 dB of the sample peak can beat it in practice.
+    const gate = samplePeak * 0.708;
+    const cand = [];
+    for (let i = 1; i < n - 1; i++) {
+        const a = Math.abs(data[i]);
+        if (a >= gate && a >= Math.abs(data[i - 1]) && a >= Math.abs(data[i + 1])) cand.push(i);
+    }
+    // Hard cap so a pathological file can't hang the tab.
+    if (cand.length > 120000) {
+        const step = cand.length / 120000;
+        const trimmed = [];
+        for (let i = 0; i < cand.length; i += step) trimmed.push(cand[i | 0]);
+        cand.length = 0; cand.push.apply(cand, trimmed);
+    }
+
+    const TAPS = 8, norm = Math.PI;
+    let truePeak = samplePeak;
+    for (let c = 0; c < cand.length; c++) {
+        const i = cand[c];
+        for (let p = 1; p <= 3; p++) {
+            const frac = p / 4;
+            let y = 0;
+            for (let k = -TAPS + 1; k <= TAPS; k++) {
+                const idx = i + k;
+                if (idx < 0 || idx >= n) continue;
+                const x = k - frac;
+                const s = Math.sin(norm * x) / (norm * x);
+                const w = 0.5 + 0.5 * Math.cos(Math.PI * x / TAPS);
+                y += data[idx] * s * w;
+            }
+            const ay = Math.abs(y);
+            if (ay > truePeak) truePeak = ay;
+        }
+    }
+    return { truePeak, samplePeak };
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   4. THE ANALYZER
+   ═══════════════════════════════════════════════════════════════════════ */
+const BANDS = [
+    { key: 'sub',     name: 'Sub',       lo: 20,    hi: 60 },
+    { key: 'bass',    name: 'Bass',      lo: 60,    hi: 150 },
+    { key: 'lowmid',  name: 'Low-mid',   lo: 150,   hi: 400 },
+    { key: 'mid',     name: 'Mid',       lo: 400,   hi: 1000 },
+    { key: 'himid',   name: 'High-mid',  lo: 1000,  hi: 3000 },
+    { key: 'presence',name: 'Presence',  lo: 3000,  hi: 6000 },
+    { key: 'sib',     name: 'Sibilance', lo: 6000,  hi: 10000 },
+    { key: 'air',     name: 'Air',       lo: 10000, hi: 20000 }
+];
+
+async function analyzeBuffer(buffer, onProgress) {
+    const t0 = performance.now();
+    const fs = buffer.sampleRate;
+    const nCh = buffer.numberOfChannels;
+    const len = buffer.length;
+    const L = buffer.getChannelData(0);
+    const R = nCh > 1 ? buffer.getChannelData(1) : null;
+    const step = (msg, pct) => onProgress && onProgress(msg, pct);
+
+    const MAXSMP = 12000000; // 4 min @ 48 kHz guard for per-sample passes
+    if (len > MAXSMP) throw new Error('File too long (over ~4 minutes). Trim it or bounce a section.');
+
+    const kw = kWeightCoeffs(fs);
+    const subLen = Math.round(fs * 0.1);          // 100 ms sub-blocks
+    const nSub = Math.max(1, Math.floor(len / subLen));
+
+    const subZL = new Float64Array(nSub);
+    const subZR = new Float64Array(nSub);
+    const subZM = new Float64Array(nSub);
+
+    const sL1 = bq(), sL2 = bq(), sR1 = bq(), sR2 = bq();
+
+    let sumL2 = 0, sumR2 = 0, sumLR = 0;
+    let peakL = 0, peakR = 0, dcL = 0, dcR = 0;
+    let clipL = 0, clipR = 0, runL = 0, runR = 0, maxRunL = 0, maxRunR = 0;
+
+    step('K-weighting & gating loudness…', 6);
+    await nextFrame();
+
+    for (let i = 0; i < len; i++) {
+        const l = L[i];
+        const sb = (i / subLen) | 0;
+
+        // K-weighted L
+        const kl = bqStep(sL2, kw.s2b, kw.s2a, bqStep(sL1, kw.s1b, kw.s1a, l));
+        subZL[sb] += kl * kl;
+        sumL2 += l * l;
+        dcL += l;
+
+        const al = Math.abs(l);
+        if (al > peakL) peakL = al;
+        if (al >= 0.999) { clipL++; runL++; if (runL > maxRunL) maxRunL = runL; } else runL = 0;
+
+        // Right channel — ONLY when it exists. Treating a mono file as "R = L" would
+        // double the channel-power sum and read every mono file +3.01 dB hot.
+        let kr = kl;
+        if (R) {
+            const r = R[i];
+            kr = bqStep(sR2, kw.s2b, kw.s2a, bqStep(sR1, kw.s1b, kw.s1a, r));
+            subZR[sb] += kr * kr;
+            sumR2 += r * r;
+            sumLR += l * r;
+            dcR += r;
+            const ar = Math.abs(r);
+            if (ar > peakR) peakR = ar;
+            if (ar >= 0.999) { clipR++; runR++; if (runR > maxRunR) maxRunR = runR; } else runR = 0;
+        }
+
+        // K-weighting is linear => K((L+R)/2) === (K(L)+K(R))/2 exactly.
+        const km = (kl + kr) * 0.5;
+        subZM[sb] += km * km;
+
+        if ((i & 0xFFFFF) === 0xFFFFF) {
+            const pct = 6 + Math.round((i / len) * 30);
+            step('K-weighting & gating loudness…', pct);
+            await nextFrame();
+        }
+    }
+
+    /* ── Gated integrated loudness (BS.1770-4) ── */
+    const nBlocks = Math.max(0, nSub - 3); // 400 ms = 4 × 100 ms
+    const blockZ = new Float64Array(nBlocks);
+    for (let j = 0; j < nBlocks; j++) {
+        const z = subZL[j] + subZL[j + 1] + subZL[j + 2] + subZL[j + 3]
+                + subZR[j] + subZR[j + 1] + subZR[j + 2] + subZR[j + 3];
+        blockZ[j] = z / (4 * subLen);
+    }
+    const blockL = new Float64Array(nBlocks);
+    for (let j = 0; j < nBlocks; j++) blockL[j] = pdbOf(blockZ[j]) - 0.691;
+
+    // Absolute gate −70 LUFS, then relative gate −10 LU
+    let absSum = 0, absN = 0;
+    for (let j = 0; j < nBlocks; j++) if (blockL[j] > -70) { absSum += blockZ[j]; absN++; }
+    let integrated = -Infinity;
+    if (absN > 0) {
+        const relThresh = pdbOf(absSum / absN) - 0.691 - 10;
+        let sum = 0, n = 0;
+        for (let j = 0; j < nBlocks; j++) if (blockL[j] > -70 && blockL[j] > relThresh) { sum += blockZ[j]; n++; }
+        if (n > 0) integrated = pdbOf(sum / n) - 0.691;
+    }
+
+    /* ── Short-term (3 s) for LRA + the graph ── */
+    const prefix = new Float64Array(nSub + 1);
+    for (let i = 0; i < nSub; i++) {
+        prefix[i + 1] = prefix[i] + subZL[i] + subZR[i];
+    }
+    const stWin = 30; // 3 s
+    const curve = [];
+    const stLoud = [];
+    for (let j = 0; j + stWin <= nSub; j++) {
+        const z = (prefix[j + stWin] - prefix[j]) / (stWin * subLen);
+        const lufs = pdbOf(z) - 0.691;
+        stLoud.push(lufs);
+        curve.push({ t: (j + stWin / 2) * 0.1, lufs });
+    }
+    // LRA (EBU Tech 3342): gated 10th–95th percentile
+    let lra = 0;
+    if (stLoud.length > 4) {
+        const sortable = stLoud.filter(v => v > -70).sort((a, b) => a - b);
+        if (sortable.length > 4) {
+            const meanZ = sortable.reduce((a, v) => a + Math.pow(10, v / 10), 0) / sortable.length;
+            const gate = 10 * Math.log10(meanZ) - 20;
+            const kept = sortable.filter(v => v > gate);
+            if (kept.length > 4) {
+                const p10 = kept[Math.floor(kept.length * 0.10)];
+                const p95 = kept[Math.floor(kept.length * 0.95)];
+                lra = p95 - p10;
+            }
+        }
+    }
+
+    /* ── Momentary max / short-term max ── */
+    let momentaryMax = -Infinity, shortMax = -Infinity;
+    for (let j = 0; j < nBlocks; j++) if (blockL[j] > momentaryMax) momentaryMax = blockL[j];
+    for (let i = 0; i < stLoud.length; i++) if (stLoud[i] > shortMax) shortMax = stLoud[i];
+
+    /* ── Mono fold loudness (drop vs stereo = phase damage) ── */
+    const foldBlocks = Math.max(0, nSub - 3);
+    let foldLufs = -Infinity;
+    if (foldBlocks > 0) {
+        const z = new Float64Array(foldBlocks);
+        for (let j = 0; j < foldBlocks; j++) {
+            z[j] = (subZM[j] + subZM[j + 1] + subZM[j + 2] + subZM[j + 3]) / (4 * subLen);
+        }
+        let sum = 0, n = 0;
+        for (let j = 0; j < foldBlocks; j++) if (pdbOf(z[j]) - 0.691 > -70) { sum += z[j]; n++; }
+        if (n > 0) {
+            const rel = pdbOf(sum / n) - 0.691 - 10;
+            let s2 = 0, n2 = 0;
+            for (let j = 0; j < foldBlocks; j++) {
+                const l = pdbOf(z[j]) - 0.691;
+                if (l > -70 && l > rel) { s2 += z[j]; n2++; }
+            }
+            if (n2 > 0) foldLufs = pdbOf(s2 / n2) - 0.691;
+        }
+    }
+
+    /* ── Time-domain basics ── */
+    const rmsL = Math.sqrt(sumL2 / len);
+    const rmsR = R ? Math.sqrt(sumR2 / len) : rmsL;
+    const rmsStereo = Math.sqrt((sumL2 + sumR2) / (nCh * len));
+    const corr = (nCh > 1 && sumL2 > 1e-12 && sumR2 > 1e-12)
+        ? clamp(sumLR / Math.sqrt(sumL2 * sumR2), -1, 1) : 1;
+
+    step('True-peak oversampling…', 38);
+    await nextFrame();
+    const tpL = measureTruePeak(L);
+    const tpR = R ? measureTruePeak(R) : { truePeak: 0, samplePeak: 0 };
+    const truePeak = Math.max(tpL.truePeak, tpR.truePeak);
+    const samplePeak = Math.max(tpL.samplePeak, tpR.samplePeak);
+
+    /* ── STFT: averaged spectra for L and R + cross-spectrum ── */
+    step('Log-spectrum analysis…', 50);
+    await nextFrame();
+
+    const N = 8192;
+    const fft = new FFT(N);
+    const win = hannWindow(N);
+    const half = N >> 1;
+    const freqPerBin = fs / N;
+
+    const PL = new Float64Array(half);
+    const PR = new Float64Array(half);
+    const XR = new Float64Array(half);   // Re Σ L·conj(R)
+    const XI = new Float64Array(half);   // Im Σ L·conj(R)
+
+    const reL = new Float64Array(N), imL = new Float64Array(N);
+    const reR = new Float64Array(N), imR = new Float64Array(N);
+
+    const usable = Math.max(0, len - N);
+    const frames = usable > 0 ? clamp(Math.floor(usable / (N / 2)), 1, 240) : 0;
+
+    if (frames > 0) {
+        const hop = Math.max(1, Math.floor(usable / frames));
+        const start = Math.min(Math.floor(len * 0.02), Math.max(0, len - N - 1));
+
+        for (let f = 0; f < frames; f++) {
+            const off = Math.min(start + f * hop, len - N);
+            for (let i = 0; i < N; i++) {
+                const w = win[i];
+                reL[i] = L[off + i] * w; imL[i] = 0;
+                reR[i] = (R ? R[off + i] : L[off + i]) * w; imR[i] = 0;
+            }
+            fft.transform(reL, imL);
+            fft.transform(reR, imR);
+            for (let k = 1; k < half; k++) {
+                const aR = reL[k], aI = imL[k], bR = reR[k], bI = imR[k];
+                PL[k] += aR * aR + aI * aI;
+                PR[k] += bR * bR + bI * bI;
+                // L * conj(R)
+                XR[k] += aR * bR + aI * bI;
+                XI[k] += aI * bR - aR * bI;
+            }
+            if ((f & 15) === 15) {
+                step('Log-spectrum analysis…', 50 + Math.round((f / frames) * 30));
+                await nextFrame();
+            }
+        }
+        const inv = 1 / frames;
+        for (let k = 1; k < half; k++) { PL[k] *= inv; PR[k] *= inv; XR[k] *= inv; XI[k] *= inv; }
+    }
+
+    /* ── Log-spaced spectrum (power density, dB) ── */
+    const fLow = 20, fHigh = Math.min(20000, fs / 2 * 0.98);
+    const NB = 280;
+    const ratio = Math.pow(fHigh / fLow, 1 / NB);
+    const logFreq = new Float64Array(NB);
+    const logDb = new Float64Array(NB);
+    const logMono = new Float64Array(NB);
+    const logSide = new Float64Array(NB);
+    const logCorr = new Float64Array(NB);
+
+    for (let i = 0; i < NB; i++) {
+        const f0 = fLow * Math.pow(ratio, i);
+        const f1 = f0 * ratio;
+        logFreq[i] = Math.sqrt(f0 * f1);
+        let b0 = Math.max(1, Math.floor(f0 / freqPerBin));
+        let b1 = Math.min(half - 1, Math.ceil(f1 / freqPerBin));
+        if (b1 < b0) b1 = b0;
+        let p = 0, pl = 0, pr = 0, xr = 0, n = 0;
+        for (let k = b0; k <= b1; k++) { p += (PL[k] + PR[k]) * 0.5; pl += PL[k]; pr += PR[k]; xr += XR[k]; n++; }
+        if (n === 0) n = 1;
+        const avgP = p / n;
+        logDb[i] = pdbOf(avgP);
+        const sumP = (pl + pr) / n;
+        const midP = (pl + pr + 2 * xr) / (4 * n);
+        const sideP = (pl + pr - 2 * xr) / (4 * n);
+        logMono[i] = pdbOf(midP);
+        logSide[i] = pdbOf(sideP);
+        logCorr[i] = sumP > 1e-14 ? clamp((2 * xr) / (pl + pr), -1, 1) : 1;
+    }
+
+    /* ── Spectral tilt (dB per octave) via least squares ── */
+    let sx = 0, sy = 0, sxx = 0, sxy = 0, m = 0;
+    const tiltLo = 45, tiltHi = 16000;
+    for (let i = 0; i < NB; i++) {
+        const f = logFreq[i];
+        if (f < tiltLo || f > tiltHi) continue;
+        const x = Math.log2(f), y = logDb[i];
+        if (!Number.isFinite(y)) continue;
+        sx += x; sy += y; sxx += x * x; sxy += x * y; m++;
+    }
+    let tilt = 0, tiltInt = 0;
+    if (m > 4) {
+        tilt = (m * sxy - sx * sy) / (m * sxx - sx * sx);
+        tiltInt = (sy - tilt * sx) / m;
+    }
+
+    /* ── Band stats: deviation from the mix's own trend ── */
+    const bands = BANDS.map(b => {
+        let devSum = 0, devN = 0, corrSum = 0, sideSum = 0, monoSum = 0, n2 = 0;
+        let bestDb = -Infinity, bestF = b.lo;
+        for (let i = 0; i < NB; i++) {
+            const f = logFreq[i];
+            if (f < b.lo || f >= b.hi) continue;
+            const y = logDb[i];
+            if (!Number.isFinite(y)) continue;
+            const trend = tilt * Math.log2(f) + tiltInt;
+            devSum += (y - trend); devN++;
+            corrSum += logCorr[i]; sideSum += logSide[i]; monoSum += logMono[i]; n2++;
+            if (y > bestDb) { bestDb = y; bestF = f; }
+        }
+        return {
+            key: b.key, name: b.name, lo: b.lo, hi: b.hi,
+            dev: devN ? devSum / devN : 0,
+            corr: n2 ? corrSum / n2 : 1,
+            widthDb: n2 ? (sideSum - monoSum) / n2 : -60,
+            peakFreq: bestF,
+            levelDb: bestDb
+        };
+    });
+
+    /* ── Band-limited correlation (bass phase = club survival) ── */
+    function corrInRange(lo, hi) {
+        let pl = 0, pr = 0, xr = 0;
+        for (let k = Math.max(1, Math.floor(lo / freqPerBin)); k <= half - 1 && k <= Math.ceil(hi / freqPerBin); k++) {
+            pl += PL[k]; pr += PR[k]; xr += XR[k];
+        }
+        if (pl + pr < 1e-14) return 1;
+        return clamp((2 * xr) / (pl + pr), -1, 1);
+    }
+    const corrLow = corrInRange(20, 150);
+    const corrMid = corrInRange(150, 2000);
+    const corrHigh = corrInRange(2000, 16000);
+
+    /* ── Spectral shape descriptors ── */
+    let centNum = 0, centDen = 0, totalP = 0;
+    for (let k = 1; k < half; k++) {
+        const f = k * freqPerBin;
+        if (f > 16000) break;
+        const p = (PL[k] + PR[k]) * 0.5;
+        centNum += f * p; centDen += p; totalP += p;
+    }
+    const centroid = centDen > 0 ? centNum / centDen : 0;
+
+    let rolloff = 0, acc = 0;
+    for (let k = 1; k < half; k++) {
+        acc += (PL[k] + PR[k]) * 0.5;
+        if (acc >= totalP * 0.85) { rolloff = k * freqPerBin; break; }
+    }
+
+    let geoSum = 0, arithSum = 0, flatN = 0;
+    for (let k = Math.max(1, Math.floor(100 / freqPerBin)); k <= Math.floor(8000 / freqPerBin) && k < half; k++) {
+        const p = (PL[k] + PR[k]) * 0.5 + 1e-18;
+        geoSum += Math.log(p); arithSum += p; flatN++;
+    }
+    const flatness = flatN > 2 ? clamp(Math.exp(geoSum / flatN) / (arithSum / flatN), 0, 1) : 0;
+
+    /* ── Bandwidth / DC / clipping summary ── */
+    const dcOffset = Math.max(Math.abs(dcL / len), Math.abs(dcR / len));
+    const clipCount = clipL + clipR;
+    const clipPct = (clipCount / (len * nCh)) * 100;
+    const maxRun = Math.max(maxRunL, maxRunR);
+
+    const peakDb = dbOf(samplePeak);
+    const truePeakDb = dbOf(truePeak);
+    const rmsDb = dbOf(rmsStereo);
+    const crest = truePeakDb - rmsDb;
+    const plr = integrated > -Infinity ? truePeakDb - integrated : 0;
+    const monoDrop = !Number.isFinite(integrated) ? 0
+        : !Number.isFinite(foldLufs) ? 99          // total cancellation in mono
+        : integrated - foldLufs;
+
+    step('Scoring & roasting…', 84);
+    await nextFrame();
+
+    // A file with no audible signal must never score like a well-behaved mix.
+    const silent = !(samplePeak > 0.0032) || !Number.isFinite(integrated);
+
+    const metrics = {
+        fs, len, nCh,
+        duration: len / fs,
+        silent,
+        // loudness
+        lufsIntegrated: integrated,
+        lufsShortMax: shortMax,
+        lufsMomentaryMax: momentaryMax,
+        lra, lufsMono: foldLufs, monoDrop,
+        // peaks
+        truePeakDb, samplePeakDb: peakDb, peakL: dbOf(peakL), peakR: dbOf(peakR),
+        crest, plr,
+        // levels
+        rmsDb, rmsL: dbOf(rmsL), rmsR: dbOf(rmsR),
+        // defects
+        dcOffset, clipCount, clipPct, maxClipRun: maxRun,
+        // stereo
+        corr, corrLow, corrMid, corrHigh,
+        // spectrum
+        tilt, tiltInt, centroid, rolloff, flatness,
+        bands,
+        logFreq, logDb, logMono, logSide, logCorr,
+        loudnessCurve: curve,
+        analyzeMs: Math.round(performance.now() - t0)
+    };
+
+    metrics.categories = scoreMetrics(metrics);
+    metrics.score = Math.round(metrics.categories.reduce((a, c) => a + c.score * c.weight, 0) / 100);
+
+    step('Done.', 100);
+    return metrics;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   5. SCORING — explainable, one number per category
+   ═══════════════════════════════════════════════════════════════════════ */
+function scoreMetrics(M) {
+    if (M.silent) {
+        return [
+            { key: 'headroom', label: 'Headroom', weight: 18, score: 0 },
+            { key: 'dynamics', label: 'Dynamics', weight: 18, score: 0 },
+            { key: 'phase', label: 'Phase / Mono', weight: 18, score: 0 },
+            { key: 'balance', label: 'Balance', weight: 18, score: 0 },
+            { key: 'stereo', label: 'Stereo', weight: 10, score: 0 },
+            { key: 'clean', label: 'Cleanliness', weight: 8, score: 0 },
+            { key: 'loudness', label: 'Loudness', weight: 10, score: 0 }
+        ];
+    }
+    const cats = [];
+
+    /* Headroom / clipping — 18 */
+    let hp;
+    const tp = M.truePeakDb;
+    if (tp <= -1) hp = 100;
+    else if (tp <= 0) hp = 100 - (tp + 1) * 30;
+    else if (tp <= 3) hp = 70 - (tp * 23.3);
+    else hp = 0;
+    if (M.maxClipRun >= 3) hp = Math.min(hp, 35);
+    hp = clamp(hp - Math.min(30, M.clipPct * 12), 0, 100);
+    cats.push({ key: 'headroom', label: 'Headroom', weight: 18, score: hp });
+
+    /* Dynamics — 18 */
+    let dy;
+    const P = M.plr;
+    if (P >= 8 && P <= 16) dy = 100;
+    else if (P < 8) dy = clamp((P - 1) / 7, 0, 1) * 100;
+    else dy = clamp(100 - (P - 16) * 5, 50, 100);
+    if (M.lra < 3) dy = Math.min(dy, 55);
+    cats.push({ key: 'dynamics', label: 'Dynamics', weight: 18, score: dy });
+
+    /* Phase / mono — 18 */
+    let ph = 100;
+    const lowC = M.nCh > 1 ? M.corrLow : 1;
+    if (lowC < 0) ph = 8;
+    else if (lowC < 0.5) ph = 8 + (lowC / 0.5) * 52;
+    else if (lowC < 0.85) ph = 60 + ((lowC - 0.5) / 0.35) * 30;
+    else ph = 90 + ((lowC - 0.85) / 0.15) * 10;
+    if (M.nCh > 1) {
+        const allC = M.corr;
+        const allScore = allC < 0 ? 10 : clamp(allC * 100, 10, 100);
+        ph = ph * 0.62 + allScore * 0.38;
+    }
+    if (M.monoDrop > 2) ph -= (M.monoDrop - 2) * 7;
+    ph = clamp(ph, 0, 100);
+    cats.push({ key: 'phase', label: 'Phase / Mono', weight: 18, score: ph });
+
+    /* Spectral balance — 18 */
+    let bal = 0;
+    for (let i = 0; i < M.bands.length; i++) bal += M.bands[i].dev * M.bands[i].dev;
+    bal = Math.sqrt(bal / M.bands.length);           // RMS deviation in dB
+    const balScore = clamp(100 - (bal - 1.2) * 11, 0, 100);
+    cats.push({ key: 'balance', label: 'Balance', weight: 18, score: balScore });
+
+    /* Stereo — 10 */
+    let st;
+    if (M.nCh < 2) st = 100;
+    else {
+        const w = M.corrMid >= -1 ? (M.bands[2].widthDb + M.bands[4].widthDb) / 2 : -12;
+        if (w < -18) st = 55;
+        else if (w < -10) st = 55 + ((w + 18) / 8) * 40;
+        else if (w <= 0) st = 95;
+        else if (w <= 6) st = 95 - (w / 6) * 40;
+        else st = 55;
+    }
+    cats.push({ key: 'stereo', label: 'Stereo', weight: 10, score: clamp(st, 0, 100) });
+
+    /* Cleanliness — 8 */
+    let cl = 100;
+    if (M.dcOffset > 0.005) cl -= 45;
+    else if (M.dcOffset > 0.001) cl -= 15;
+    if (M.fs < 44100) cl -= 30;
+    if (M.samplePeakDb < -30) cl -= 40;
+    cats.push({ key: 'clean', label: 'Cleanliness', weight: 8, score: clamp(cl, 0, 100) });
+
+    /* Loudness — 10 */
+    let ld;
+    const L0 = M.lufsIntegrated;
+    if (!Number.isFinite(L0)) ld = 0;
+    else if (L0 >= -14 && L0 <= -11) ld = 100;
+    else if (L0 > -11 && L0 <= -9) ld = 100 - ((L0 + 11) / 2) * 20;
+    else if (L0 > -9 && L0 <= -7) ld = 80 - ((L0 + 9) / 2) * 30;
+    else if (L0 > -7) ld = clamp(50 - (L0 + 7) * 8, 5, 50);
+    else if (L0 >= -16) ld = 100 - ((-14 - L0) / 2) * 15;
+    else if (L0 >= -20) ld = 85 - ((-16 - L0) / 4) * 35;
+    else ld = clamp(50 - (-20 - L0) * 5, 5, 50);
+    cats.push({ key: 'loudness', label: 'Loudness', weight: 10, score: clamp(ld, 0, 100) });
+
+    return cats;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   6. FL STUDIO FIX ENGINE — every number comes from the file
+   ═══════════════════════════════════════════════════════════════════════ */
+function bandOf(M, key) { return M.bands.find(b => b.key === key); }
+function nearestBand(M, lo, hi) {
+    // Average deviation across the log bins inside [lo, hi] + the worst frequency there.
+    // MUST include the intercept — without it every value is offset by tiltInt and
+    // the fix amounts are nonsense.
+    let sum = 0, n = 0, worst = -Infinity, worstF = lo;
+    for (let i = 0; i < M.logFreq.length; i++) {
+        const f = M.logFreq[i];
+        if (f < lo || f >= hi) continue;
+        const trend = M.tiltInt + M.tilt * Math.log2(f);
+        const dev = M.logDb[i] - trend;
+        if (!Number.isFinite(dev)) continue;
+        sum += dev; n++;
+        if (dev > worst) { worst = dev; worstF = f; }
+    }
+    return { dev: n ? sum / n : 0, freq: worstF, worst };
+}
+function fmtHz(f) {
+    if (f >= 1000) return (f / 1000).toFixed(f >= 10000 ? 0 : 1) + ' kHz';
+    return Math.round(f) + ' Hz';
+}
+
+const Roasts = {
+    build(M) {
+        const out = [];
+        const add = (sev, icon, title, text, evidence, fix) =>
+            out.push({ sev, icon, title, text, evidence: evidence || [], fix: fix || null });
+
+        if (M.silent) {
+            add('critical', '🔇', 'This file is silent',
+                `Peak level is <b>${fx(M.samplePeakDb, 1)} dBFS</b> — there's effectively no audio in here. ` +
+                `Either the export went to the wrong bus, the mute was still on, or the render range missed the arrangement. ` +
+                `Nothing to roast and nothing to fix until there's sound.`,
+                [`peak ${fx(M.samplePeakDb, 1)} dBFS`],
+                {
+                    plugin: 'FL Studio — export',
+                    text: `Check the master fader isn't muted, confirm the render selection covers the playlist, and re-export. Then drop it back in.`,
+                    code: `File → Export → WAV · range = full song`
+                });
+            return out;
+        }
+
+        const L = M.lufsIntegrated;
+        const tp = M.truePeakDb;
+
+        /* ── Clipping ── */
+        if (M.maxClipRun >= 3 || M.clipPct > 0.02) {
+            const chTxt = M.peakL === M.peakR ? '' : (M.peakL > M.peakR ? ' (left channel)' : ' (right channel)');
+            add('critical', '🔴', 'Clipping — hard digital flat-tops',
+                `Found <b>${Math.round(M.clipCount).toLocaleString()}</b> samples pinned at full scale, ` +
+                `with a run of <b>${M.maxClipRun}</b> consecutive flat samples${chTxt}. ` +
+                `That's not warm saturation, that's the waveform getting its head cut off. ` +
+                `Every one of those flat-tops is broadband distortion you can't EQ out later.`,
+                [`clip ${fx(M.clipPct, 2)}%`, `max run ${M.maxClipRun}`],
+                {
+                    plugin: 'Fruity Limiter → Master',
+                    text: `Pull the master down first. Put Fruity Limiter last in the master chain with the ceiling at −1.0 dB, then re-check. If it still clips, the gain staging upstream is hot — trim each mixer insert by 2–3 dB before the limiter.`,
+                    code: `Ceiling −1.0 dB · Attack 0.1 ms · Release 60 ms · Knee ~10`
+                });
+        } else if (tp > 0) {
+            add('critical', '🔺', 'True peak over 0 dBTP',
+                `Your sample peaks read <b>${fx(M.samplePeakDb, 2)} dBFS</b> — looks legal. ` +
+                `But 4× oversampled, the real peak is <b>${fx(tp, 2)} dBTP</b>. ` +
+                `That gap is intersample peak, and it's exactly what clips the DAC in a club or a phone. ` +
+                `Mastered releases should land at −1.0 dBTP or lower.`,
+                [`${fx(tp, 2)} dBTP`, `sample ${fx(M.samplePeakDb, 2)}`],
+                {
+                    plugin: 'Fruity Limiter → Master',
+                    text: `Set the ceiling to −1.0 dB and let it work. If you need loudness, get it upstream with compression, not by slamming the ceiling into 0.`,
+                    code: `Ceiling −1.0 dB · no lookahead tricks needed`
+                });
+        } else if (tp > -0.3) {
+            add('warning', '🟠', 'Peaks too close to the ceiling',
+                `True peak is <b>${fx(tp, 2)} dBTP</b>. You're within a rounding error of clipping, and ` +
+                `any lossy encode (MP3, AAC, Spotify's normaliser) will push it over. ` +
+                `Leave −1.0 dB of room and nobody ever hears a click.`,
+                [`${fx(tp, 2)} dBTP`],
+                { plugin: 'Fruity Limiter', text: 'Drop the ceiling from −0.1 to −1.0 dB. That\'s it. Free insurance.', code: `Ceiling −1.0 dB` });
+        } else {
+            add('good', '✅', 'Headroom is clean',
+                `True peak <b>${fx(tp, 2)} dBTP</b> — safely under the ceiling, no clipping runs, no intersample surprises. ` +
+                `This is what "mastered properly" actually looks like.`,
+                [`${fx(tp, 2)} dBTP`]);
+        }
+
+        /* ── Loudness ── */
+        if (Number.isFinite(L)) {
+            if (L > -8) {
+                add('warning', '🔥', 'Hotter than the streaming targets',
+                    `Integrated <b>${fx(L, 1)} LUFS</b>. Spotify normalises to −14, Apple to −16. ` +
+                    `You're ${fx(L + 14, 1)} dB over the Spotify target, so they'll turn you <i>down</i> — ` +
+                    `and all you bought with that extra gain was less punch and a squashed transient. ` +
+                    `Loudness war rules stopped applying around 2015.`,
+                    [`${fx(L, 1)} LUFS`, `PLR ${fx(M.plr, 1)} dB`],
+                    {
+                        plugin: 'Maximus / Fruity Limiter',
+                        text: `Bring the master down until integrated lands around −14 LUFS. You'll hear the kick come back. If it feels quiet next to other tracks, that's the platform's job to fix, not yours.`,
+                        code: `Input gain ≈ ${fx(-14 - L, 1)} dB → target −14 LUFS`
+                    });
+            } else if (L < -16) {
+                add('warning', '🔉', 'Quieter than the pack',
+                    `Integrated <b>${fx(L, 1)} LUFS</b>. Streaming won't boost you up to −14 — they only turn things down. ` +
+                    `So this will simply play ${fx(-14 - L, 1)} dB quieter than everything else in the playlist, ` +
+                    `and listeners will hit skip before they touch the volume slider.`,
+                    [`${fx(L, 1)} LUFS`],
+                    {
+                        plugin: 'Maximus',
+                        text: `Use Maximus as a gentle multiband glue, then a limiter to catch peaks. Aim for ~${fx(-14 - L, 1)} dB of gain reduction across the chain, not from one plugin.`,
+                        code: `Target −14 LUFS · soften the low band, then limit`
+                    });
+            } else {
+                add('good', '🎚️', 'Loudness is on target',
+                    `<b>${fx(L, 1)} LUFS</b> integrated. That sits in the streaming sweet spot (−14 to −11), ` +
+                    `so no platform will wreck your dynamics to normalise you. Genuinely well judged.`,
+                    [`${fx(L, 1)} LUFS`]);
+            }
+        }
+
+        /* ── Dynamics ── */
+        if (M.plr < 6) {
+            add('critical', '💀', 'Dynamics flatlined',
+                `Peak-to-loudness ratio is only <b>${fx(M.plr, 1)} dB</b>. For context, healthy masters sit at 8–14 dB. ` +
+                `At ${fx(M.plr, 1)} dB the kick, the snare and the vocal are all the same volume — the mix has been ` +
+                `squeezed into a sausage. Your transients are gone and no EQ brings them back.`,
+                [`PLR ${fx(M.plr, 1)} dB`, `LRA ${fx(M.lra, 1)} LU`, `crest ${fx(M.crest, 1)} dB`],
+                {
+                    plugin: 'Fruity Limiter / Maximus',
+                    text: `Back the limiter input gain off by 3–4 dB and re-balance with a compressor on the drum bus instead of the master. You want the transients poking out of the body, not level with it.`,
+                    code: `Limiter input −3 to −4 dB · drum bus comp 3:1, 15 ms attack`
+                });
+        } else if (M.plr > 20) {
+            add('info', '📈', 'Very wide dynamics',
+                `PLR is <b>${fx(M.plr, 1)} dB</b> — that's a lot of untouched headroom. Either this isn't mastered yet ` +
+                `or the quiet sections are extremely quiet. Streaming doesn't reward this; it just makes the loud parts ` +
+                `feel smaller by comparison.`,
+                [`PLR ${fx(M.plr, 1)} dB`, `LRA ${fx(M.lra, 1)} LU`],
+                {
+                    plugin: 'Maximus',
+                    text: `Add gentle bus compression before limiting. 2:1, slow attack (30 ms), auto release. You're gluing, not squashing.`,
+                    code: `Ratio 2:1 · Attack 30 ms · ~2 dB GR`
+                });
+        } else if (M.lra < 4) {
+            add('warning', '📉', 'No movement across the track',
+                `Loudness range is only <b>${fx(M.lra, 1)} LU</b>. Intro, verse and drop are all the same volume, ` +
+                `so the drop has nothing to drop from. Contrast is what makes a chorus feel like a chorus.`,
+                [`LRA ${fx(M.lra, 1)} LU`],
+                {
+                    plugin: 'Volume automation (not plugins)',
+                    text: `Automate the master or the drop's bus: pull the verse down 1.5–2 dB so the chorus hits relative to it. Cheapest energy upgrade in the business.`,
+                    code: `Verse −1.5 dB vs chorus · automate on the master fader`
+                });
+        } else {
+            add('good', '💥', 'Dynamics are healthy',
+                `PLR <b>${fx(M.plr, 1)} dB</b>, LRA <b>${fx(M.lra, 1)} LU</b>. Transients are intact and the arrangement still breathes. ` +
+                `That's the balance most people never find.`,
+                [`PLR ${fx(M.plr, 1)}`, `LRA ${fx(M.lra, 1)}`]);
+        }
+
+        /* ── Phase / mono ── */
+        if (M.nCh > 1) {
+            if (M.corrLow < 0.25) {
+                add('critical', '⚠️', 'Bass is out of phase',
+                    `Low-band correlation (20–150 Hz) is <b>${fx(M.corrLow, 2)}</b>. Anything under 0.5 means the low end ` +
+                    `partially cancels when folded to mono — and every club PA, phone speaker and Bluetooth box is mono. ` +
+                    `Your sub is going to evaporate exactly where it matters.` +
+                    (M.monoDrop >= 99 ? ` The mono fold <b>cancels completely</b> — it goes silent.`
+                        : M.monoDrop > 1 ? ` The mono fold loses <b>${fx(M.monoDrop, 1)} dB</b> of loudness, which confirms it.` : ''),
+                    [`low corr ${fx(M.corrLow, 2)}`, `mono drop ${fx(M.monoDrop, 1)} dB`],
+                    {
+                        plugin: 'Fruity Stereo Shaper',
+                        text: `Set the "Mono separation" on your bass bus to 0% (fully mono) below ~150 Hz. Widening bass is the single most common self-inflicted mix wound in EDM.`,
+                        code: `Stereo Shaper → Mono separation 0% on bass/sub bus`
+                    });
+            } else if (M.corrLow < 0.55) {
+                add('warning', '🎯', 'Low end is a bit phasey',
+                    `Low-band correlation is <b>${fx(M.corrLow, 2)}</b>. Not a disaster, but you're losing a chunk of ` +
+                    `sub weight to cancellation. Kick and bass are probably fighting over the same 60–100 Hz.`,
+                    [`low corr ${fx(M.corrLow, 2)}`],
+                    {
+                        plugin: 'Fruity Stereo Shaper + Parametric EQ 2',
+                        text: `Mono everything under 150 Hz, then separate kick and bass by frequency — kick at 50–60 Hz, bass at 90–110 Hz, or sidechain the bass to the kick.`,
+                        code: `Mono < 150 Hz · sidechain: kick → bass, −3 dB, fast release`
+                    });
+            }
+            if (M.corr < -0.05) {
+                add('critical', '🔄', 'Overall phase is inverted',
+                    `Full-band correlation is <b>${fx(M.corr, 2)}</b> — negative. Something in your chain has the polarity ` +
+                    `flipped, and in mono this mix largely disappears. That's usually a stereo-widener applied past 100% or ` +
+                    `a duplicated layer with one copy phase-inverted.`,
+                    [`corr ${fx(M.corr, 2)}`],
+                    {
+                        plugin: 'Fruity Stereo Shaper',
+                        text: `Bypass every widener one at a time until the correlation meter goes positive. Then fix the offender with a proper mid/side widen instead.`,
+                        code: `Correlation meter should read +0.3 to +0.8`
+                    });
+            } else if (M.monoDrop > 3) {
+                add('warning', '📞', 'Big level loss when summed to mono',
+                    (M.monoDrop >= 99
+                        ? `Folding to mono makes this <b>completely silent</b> — that's full cancellation, not a dip. `
+                        : `Folding to mono costs you <b>${fx(M.monoDrop, 1)} dB</b>. A well-behaved stereo mix loses almost nothing. `) +
+                    `This is the sound of out-of-phase content cancelling itself out.`,
+                    [M.monoDrop >= 99 ? 'mono fold silent' : `mono drop ${fx(M.monoDrop, 1)} dB`],
+                    {
+                        plugin: 'Fruity Stereo Shaper',
+                        text: `Narrow the widest elements (pads, reverbs, supersaws) and check the correlation meter while you do it.`,
+                        code: `Aim for mono drop < 1 dB`
+                    });
+            }
+        }
+
+        /* ── Muddiness ── */
+        const mud = nearestBand(M, 180, 500);
+        if (mud.dev > 2.5) {
+            add('warning', '🐸', 'Mud zone is bloated',
+                `The 180–500 Hz range sits <b>${fx(mud.dev, 1)} dB above</b> this mix's own trend line, with the worst ` +
+                `offender at <b>${fmtHz(mud.freq)}</b>. That's the "underwater in a swamp" region — it eats headroom ` +
+                `and buries the vocal without ever making the mix louder.`,
+                [`+${fx(mud.dev, 1)} dB @ ${fmtHz(mud.freq)}`],
+                {
+                    plugin: 'Fruity Parametric EQ 2',
+                    text: `Cut ${fx(Math.min(4, mud.dev * 0.8), 1)} dB at ${fmtHz(mud.freq)} with a moderate Q. Sweep the band while the whole mix plays to find the exact spot where the boxiness drops away.`,
+                    code: `Band 3 → Cut ${fx(Math.min(4, mud.dev * 0.8), 1)} dB @ ${fmtHz(mud.freq)} · Q 1.2`
+                });
+        } else if (mud.dev < -3) {
+            add('info', '🕳️', 'Low-mids are scooped',
+                `180–500 Hz is <b>${fx(Math.abs(mud.dev), 1)} dB below</b> the trend. Careful — a big hole here sounds ` +
+                `great on headphones and hollow as hell on speakers, because that's where body and weight live.`,
+                [`${fx(mud.dev, 1)} dB @ ${fmtHz(mud.freq)}`],
+                {
+                    plugin: 'Fruity Parametric EQ 2',
+                    text: `Add back ${fx(Math.abs(mud.dev) * 0.6, 1)} dB around ${fmtHz(mud.freq)} for body, or layer a mid-range element there.`,
+                    code: `Band 3 → +${fx(Math.abs(mud.dev) * 0.6, 1)} dB @ ${fmtHz(mud.freq)}`
+                });
+        }
+
+        /* ── Harshness / presence ── */
+        const harsh = nearestBand(M, 2500, 5000);
+        const sib = nearestBand(M, 5500, 9000);
+        if (harsh.dev > 2.5) {
+            add('warning', '📢', 'Harsh upper-mids',
+                `2.5–5 kHz is <b>${fx(harsh.dev, 1)} dB hot</b>, peaking at <b>${fmtHz(harsh.freq)}</b>. This is the range ` +
+                `the ear is most sensitive to (Fletcher-Munson peaks right around 3–4 kHz), so it fatigues listeners ` +
+                `in about 90 seconds — usually without them knowing why they skipped.`,
+                [`+${fx(harsh.dev, 1)} dB @ ${fmtHz(harsh.freq)}`],
+                {
+                    plugin: 'Fruity Parametric EQ 2 (or Maximus, mid band)',
+                    text: `A dynamic cut beats a static one here — you want the harshness tamed on the loud hits but still present on the quiet parts. Static: cut ${fx(Math.min(3.5, harsh.dev * 0.75), 1)} dB at ${fmtHz(harsh.freq)}, Q 1.4.`,
+                    code: `Cut ${fx(Math.min(3.5, harsh.dev * 0.75), 1)} dB @ ${fmtHz(harsh.freq)} · Q 1.4`
+                });
+        }
+        if (sib.dev > 3.5) {
+            add('info', '🔪', 'Sibilance spike',
+                `${fmtHz(sib.freq)} is <b>${fx(sib.dev, 1)} dB</b> above trend — that's the "ssss" region. On cymbals it ` +
+                `sounds like grit; on vocals it sounds like a lisp. Cheap to fix, very audible.`,
+                [`+${fx(sib.dev, 1)} dB @ ${fmtHz(sib.freq)}`],
+                {
+                    plugin: 'Fruity Parametric EQ 2',
+                    text: `Narrow cut (Q 2.5–4) of ${fx(Math.min(3, sib.dev * 0.7), 1)} dB right at ${fmtHz(sib.freq)}. Narrow so you don't dull the air above it.`,
+                    code: `Cut ${fx(Math.min(3, sib.dev * 0.7), 1)} dB @ ${fmtHz(sib.freq)} · Q 3.0`
+                });
+        }
+
+        /* ── Sub / bass ── */
+        const sub = bandOf(M, 'sub');
+        const bass = bandOf(M, 'bass');
+        if (sub && sub.dev > 3) {
+            add('warning', '🔊', 'Sub is over-cooked',
+                `20–60 Hz runs <b>${fx(sub.dev, 1)} dB above</b> the trend. Most of that energy is below what small speakers ` +
+                `can even reproduce, so it eats your headroom on the master and translates as nothing but rumble on a phone.`,
+                [`+${fx(sub.dev, 1)} dB sub`],
+                {
+                    plugin: 'Fruity Parametric EQ 2',
+                    text: `High-pass at 30 Hz (24 dB/oct) to clear rumble, then trim ~${fx(sub.dev * 0.5, 1)} dB around ${fmtHz(sub.peakFreq)}.`,
+                    code: `Band 1 → HP 30 Hz · Band 2 → −${fx(sub.dev * 0.5, 1)} dB @ ${fmtHz(sub.peakFreq)}`
+                });
+        } else if (sub && sub.dev < -6 && M.tilt > -6) {
+            add('info', '🪶', 'Thin low end',
+                `Sub is <b>${fx(Math.abs(sub.dev), 1)} dB below</b> trend while the rest of the mix is normal. ` +
+                `On big systems this will feel weightless.`,
+                [`${fx(sub.dev, 1)} dB sub`],
+                {
+                    plugin: 'Fruity Parametric EQ 2 + 3xOsc',
+                    text: `Check your monitoring first — if your room has no sub, you'll mix this blind. Then add a clean sine sub layer at ${fmtHz(sub.peakFreq || 50)} or a low shelf.`,
+                    code: `Low shelf +2 dB @ 70 Hz · or sine sub layer @ 50 Hz`
+                });
+        }
+
+        /* ── Air / dullness ── */
+        const air = bandOf(M, 'air');
+        if (air && air.dev < -3.5) {
+            add('info', '🌫️', 'Dull top end',
+                `10–20 kHz is <b>${fx(Math.abs(air.dev), 1)} dB below</b> trend. The mix reads closed-in. ` +
+                `Note: this is often correct for vinyl-style or dark genres — judge it against your reference, not against EDM.`,
+                [`${fx(air.dev, 1)} dB air`],
+                {
+                    plugin: 'Fruity Parametric EQ 2',
+                    text: `High shelf ${fx(Math.min(2.5, Math.abs(air.dev) * 0.5), 1)} dB at 10 kHz. Careful: air boosts raise true peak fast, so re-check the limiter after.`,
+                    code: `Band 7 → High Shelf +${fx(Math.min(2.5, Math.abs(air.dev) * 0.5), 1)} dB @ 10 kHz`
+                });
+        } else if (air && air.dev > 4) {
+            add('info', '✨', 'Very bright top',
+                `${fmtHz(air.peakFreq)} is <b>${fx(air.dev, 1)} dB</b> above trend. If it's cymbals, this is fizz. If it's ` +
+                `exciters, this is the "cheap MP3" sound — and it gets worse after encoding.`,
+                [`+${fx(air.dev, 1)} dB air`],
+                {
+                    plugin: 'Fruity Parametric EQ 2',
+                    text: `Gentle high shelf cut of ${fx(Math.min(2, air.dev * 0.4), 1)} dB above 12 kHz.`,
+                    code: `High Shelf −${fx(Math.min(2, air.dev * 0.4), 1)} dB @ 12 kHz`
+                });
+        }
+
+        /* ── Width ── */
+        if (M.nCh > 1) {
+            const lowWidth = M.bands[0].widthDb;
+            let totalWidth = 0;
+            for (let i = 2; i < 6; i++) totalWidth += M.bands[i].widthDb;
+            totalWidth /= 4;
+            if (totalWidth < -14) {
+                add('info', '📍', 'Mix is nearly mono',
+                    `The 150 Hz–6 kHz body has a side/mid ratio of <b>${fx(totalWidth, 1)} dB</b> — basically one speaker. ` +
+                    `Mono is not a crime (plenty of classics are), but on headphones it reads as flat and small.`,
+                    [`width ${fx(totalWidth, 1)} dB`],
+                    {
+                        plugin: 'Fruity Stereo Shaper / Panning',
+                        text: `Pan the supporting elements ±20–35%, keep kick/bass/vocal centre. Width comes from arrangement and panning far more than from wideners.`,
+                        code: `Hats +25 L · pads 40% width · keep sub mono`
+                    });
+            } else if (totalWidth > 3) {
+                add('warning', '🌌', 'Wide beyond safety',
+                    `Side energy exceeds mid by <b>${fx(totalWidth, 1)} dB</b> in the body. Impressive on headphones, ` +
+                    `but it will collapse in mono and the centre (vocal, kick) loses focus.`,
+                    [`width ${fx(totalWidth, 1)} dB`, `corr ${fx(M.corr, 2)}`],
+                    {
+                        plugin: 'Fruity Stereo Shaper',
+                        text: `Reduce the width of pads and reverbs ~20%. Keep the lead and drums firmly centre so mono folding has something solid to keep.`,
+                        code: `Width 100% → 78% on pad/reverb buses`
+                    });
+            }
+        } else {
+            add('info', '🎧', 'Mono file',
+                'This is a single-channel file, so stereo metrics are skipped. If this was meant to be stereo, your export is broken — check the render settings.',
+                ['1 channel']);
+        }
+
+        /* ── Cleanliness ── */
+        if (M.dcOffset > 0.002) {
+            add('info', '🔌', 'DC offset',
+                `Your waveform is sitting <b>${fx(M.dcOffset * 100, 2)}%</b> off centre. It costs headroom and can make ` +
+                `limiters behave oddly, and it often means a free-running synth or a bad sample.`,
+                [`DC ${fx(M.dcOffset * 100, 2)}%`],
+                {
+                    plugin: 'Fruity Parametric EQ 2 / Edison',
+                    text: `High-pass at 20–25 Hz on the master kills DC without touching audible bass. Or use Edison's "Normalize / Remove DC offset".`,
+                    code: `Band 1 → HP 22 Hz, 12 dB/oct`
+                });
+        }
+        if (M.fs < 44100) {
+            add('info', '📼', 'Low sample rate',
+                `File is <b>${M.fs} Hz</b>. Everything above ${fx(M.fs / 2 / 1000, 1)} kHz doesn't exist, and the ` +
+                `anti-alias filter is eating your air band. Fine for a sketch, not for a release.`,
+                [`${M.fs} Hz`],
+                { plugin: 'FL Studio render settings', text: 'Render at 44.1 kHz minimum, 48 kHz if it\'s going anywhere video-adjacent.', code: `Sample rate 48000 · 24-bit WAV` });
+        }
+
+        /* ── Nothing wrong ── */
+        if (!out.some(r => r.sev === 'critical' || r.sev === 'warning')) {
+            add('good', '🏆', 'No structural problems',
+                `No clipping, no phase damage, no mud, no harshness. Tilt is <b>${fx(M.tilt, 1)} dB/oct</b> and centroid ` +
+                `sits at <b>${fmtHz(M.centroid)}</b>, which is a sane, musical balance. Nothing here needs rescuing — ` +
+                `only taste decisions left.`,
+                [`${fx(M.tilt, 1)} dB/oct`, `centroid ${fmtHz(M.centroid)}`]);
+        }
+
+        return out;
+    },
+
+    summary(M, roasts) {
+        if (M.silent) return {
+            head: 'Silence. There is no audio in this file.',
+            body: 'Check the export before anything else — muted master, wrong bus, or a render range that missed the playlist. Drop a real bounce back in and I\'ll take it from there.'
+        };
+        const crit = roasts.filter(r => r.sev === 'critical').length;
+        const warn = roasts.filter(r => r.sev === 'warning').length;
+        const s = M.score;
+        if (s >= 88) return {
+            head: 'This is release-ready. Genuinely.',
+            body: 'Nothing structural is broken — the numbers back that up, not just my opinion. Stop tweaking and go make the next one; this is the point where more edits start making it worse.'
+        };
+        if (s >= 74) return {
+            head: 'Strong mix with a short fix list.',
+            body: `The foundation is solid${crit ? '' : " and there isn't a critical issue in sight"}. Work the ${warn || 1} warning${warn === 1 ? '' : 's'} above in order and this jumps a tier. Most of these are 10-minute moves, not rewrites.`
+        };
+        if (s >= 58) return {
+            head: 'Decent bones, wrong balance.',
+            body: `The arrangement and ideas survive — it's the engineering that's holding it back. ${crit} critical and ${warn} warning${warn === 1 ? '' : 's'}. Fix the red cards first, re-analyze, then chase the yellow ones. Don't try to fix all of them in one pass or you'll lose the plot.`
+        };
+        if (s >= 40) return {
+            head: 'This needs a proper pass.',
+            body: `${crit} critical issue${crit === 1 ? '' : 's'} here. Good news: every one of them is a known, fixable thing with a number attached. Bad news: doing them all at once will make it worse. One at a time, re-analyze between each.`
+        };
+        return {
+            head: 'Reset. Start from the loudest, simplest element.',
+            body: `Score ${s} means the fundamentals aren't there yet — that's normal for a first bounce, not a verdict on you. Mute everything. Get the kick and bass right alone. Then add one element at a time and re-analyze. Ten minutes of that beats ten hours of random EQ.`
+        };
+    }
+};
+
+/* ═══════════════════════════════════════════════════════════════════════
+   7. PLAYER
+   ═══════════════════════════════════════════════════════════════════════ */
+class Player {
+    constructor(prefix, accent) {
+        this.prefix = prefix;
+        this.accent = accent;
+        this.el = null;
+        this.url = null;
+        this.playing = false;
+        this.peaks = null;
+        this.duration = 0;
+        this.raf = null;
+        this.btn = $('#btn-play-' + prefix);
+        this.wave = $('#wave-' + prefix);
+        this.canv = $('#canv-' + prefix);
+        this.ph = $('#ph-' + prefix);
+        this.time = $('#time-' + prefix);
+        this.btn.addEventListener('click', () => this.toggle());
+        this.wave.addEventListener('click', e => {
+            if (!this.el || !this.duration) return;
+            const r = this.wave.getBoundingClientRect();
+            this.el.currentTime = clamp((e.clientX - r.left) / r.width, 0, 1) * this.duration;
+        });
+        let ro;
+        window.addEventListener('resize', () => { clearTimeout(ro); ro = setTimeout(() => this._draw(), 140); });
+    }
+    load(file, buffer) {
+        this.stop();
+        if (this.url) URL.revokeObjectURL(this.url);
+        this.url = URL.createObjectURL(file);
+        this.el = new Audio(this.url);
+        this.el.preload = 'auto';
+        this.duration = buffer.duration;
+        this.peaks = Player.peakEnvelope(buffer, 900);
+        this.el.addEventListener('ended', () => { this.playing = false; this.btn.textContent = '▶'; this._tick(); });
+        this._draw();
+        // Safety net: if the row was still hidden when load() ran, redraw once layout settles.
+        setTimeout(() => this._draw(), 80);
+        this.time.textContent = '0:00 / ' + fmtTime(this.duration);
+        this.ph.style.left = '0%';
+    }
+    static peakEnvelope(buffer, bins) {
+        const ch = buffer.getChannelData(0);
+        const ch2 = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : null;
+        const out = new Float32Array(bins * 2);
+        const per = ch.length / bins;
+        for (let i = 0; i < bins; i++) {
+            let mn = 0, mx = 0;
+            const a = Math.floor(i * per), b = Math.min(ch.length, Math.floor((i + 1) * per));
+            for (let j = a; j < b; j++) {
+                let v = ch[j];
+                if (ch2) v = (v + ch2[j]) * 0.5;
+                if (v < mn) mn = v;
+                if (v > mx) mx = v;
+            }
+            out[i * 2] = mn; out[i * 2 + 1] = mx;
+        }
+        return out;
+    }
+    _draw() {
+        if (!this.peaks) return;
+        const c = this.canv;
+        const r = this.wave.getBoundingClientRect();
+        if (!r.width) return;
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        c.width = Math.round(r.width * dpr);
+        c.height = Math.round(r.height * dpr);
+        const ctx = c.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const W = r.width, H = r.height, mid = H / 2;
+        const bins = this.peaks.length / 2;
+        const bw = W / bins;
+        const grad = ctx.createLinearGradient(0, 0, W, 0);
+        if (this.accent === 'cyan') {
+            grad.addColorStop(0, 'rgba(34,211,238,.55)');
+            grad.addColorStop(1, 'rgba(14,165,233,.55)');
+        } else {
+            grad.addColorStop(0, 'rgba(168,85,247,.62)');
+            grad.addColorStop(.55, 'rgba(236,72,153,.58)');
+            grad.addColorStop(1, 'rgba(249,115,22,.55)');
+        }
+        ctx.fillStyle = grad;
+        for (let i = 0; i < bins; i++) {
+            const mn = this.peaks[i * 2], mx = this.peaks[i * 2 + 1];
+            const y1 = mid - mx * mid * 0.94;
+            const y2 = mid - mn * mid * 0.94;
+            ctx.fillRect(i * bw, y1, Math.max(1, bw * 0.92), Math.max(1, y2 - y1));
+        }
+        ctx.fillStyle = 'rgba(255,255,255,.14)';
+        ctx.fillRect(0, mid - .5, W, 1);
+    }
+    toggle() {
+        if (!this.el) return;
+        if (this.playing) { this.el.pause(); this.playing = false; this.btn.textContent = '▶'; }
+        else {
+            this.el.play().catch(() => {});
+            this.playing = true;
+            this.btn.textContent = '❚❚';
+            this._tick();
+        }
+    }
+    _tick() {
+        if (!this.el) return;
+        const p = this.duration ? (this.el.currentTime / this.duration) * 100 : 0;
+        this.ph.style.left = p + '%';
+        this.time.textContent = fmtTime(this.el.currentTime) + ' / ' + fmtTime(this.duration);
+        if (this.playing) requestAnimationFrame(() => this._tick());
+    }
+    stop() {
+        if (this.el) { this.el.pause(); this.el = null; }
+        this.playing = false;
+        this.btn.textContent = '▶';
+    }
+    clear() {
+        this.stop();
+        if (this.url) URL.revokeObjectURL(this.url);
+        this.url = null; this.peaks = null;
+        const ctx = this.canv.getContext('2d');
+        ctx.clearRect(0, 0, this.canv.width, this.canv.height);
+        this.time.textContent = '';
+        this.ph.style.left = '0%';
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   8. DRAWING
+   ═══════════════════════════════════════════════════════════════════════ */
+function setupCanvas(canvas, heightCss) {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = canvas.parentElement.getBoundingClientRect().width;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(heightCss * dpr);
+    canvas.style.height = heightCss + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx, W: w, H: heightCss };
+}
+
+function drawLoudness(canvas, M, refM) {
+    const { ctx, W, H } = setupCanvas(canvas, 150);
+    const padL = 36, padR = 8, padT = 10, padB = 20;
+    const iw = W - padL - padR, ih = H - padT - padB;
+    ctx.clearRect(0, 0, W, H);
+    const pts = M.loudnessCurve.filter(p => Number.isFinite(p.lufs));
+    if (!pts.length) return;
+
+    let lo = -40, hi = -3;
+    for (const p of pts) { if (p.lufs < lo) lo = p.lufs; if (p.lufs > hi) hi = p.lufs; }
+    if (refM) for (const p of refM.loudnessCurve) { if (Number.isFinite(p.lufs)) { if (p.lufs < lo) lo = p.lufs; if (p.lufs > hi) hi = p.lufs; } }
+    lo = Math.floor((lo - 2) / 3) * 3; hi = Math.ceil((hi + 2) / 3) * 3;
+    const dur = Math.max(M.duration, 0.1);
+    const X = t => padL + (t / dur) * iw;
+    const Y = v => padT + (1 - (v - lo) / (hi - lo)) * ih;
+
+    // sweet-spot band
+    ctx.fillStyle = 'rgba(52,211,153,0.09)';
+    const yA = Y(-11), yB = Y(-14);
+    ctx.fillRect(padL, yA, iw, yB - yA);
+
+    // grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.lineWidth = 1;
+    ctx.font = '10px ' + 'monospace';
+    ctx.fillStyle = 'rgba(255,255,255,0.32)';
+    for (let v = lo; v <= hi; v += 6) {
+        const y = Math.round(Y(v)) + .5;
+        ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+        ctx.fillText(String(v), 4, y + 3);
+    }
+
+    // reference curve
+    if (refM) {
+        ctx.beginPath();
+        let started = false;
+        for (const p of refM.loudnessCurve) {
+            if (!Number.isFinite(p.lufs)) continue;
+            const x = X(p.t), y = Y(p.lufs);
+            if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = 'rgba(34,211,238,0.6)';
+        ctx.lineWidth = 1.4;
+        ctx.setLineDash([4, 3]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    // main curve
+    const grad = ctx.createLinearGradient(0, padT, 0, padT + ih);
+    grad.addColorStop(0, 'rgba(168,85,247,0.42)');
+    grad.addColorStop(1, 'rgba(168,85,247,0.02)');
+    ctx.beginPath();
+    ctx.moveTo(X(pts[0].t), Y(pts[0].lufs));
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(X(pts[i].t), Y(pts[i].lufs));
+    ctx.lineTo(X(pts[pts.length - 1].t), padT + ih);
+    ctx.lineTo(X(pts[0].t), padT + ih);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(X(pts[0].t), Y(pts[0].lufs));
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(X(pts[i].t), Y(pts[i].lufs));
+    ctx.strokeStyle = '#c084fc';
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+
+    // integrated line
+    if (Number.isFinite(M.lufsIntegrated)) {
+        const y = Y(M.lufsIntegrated);
+        ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y);
+        ctx.strokeStyle = 'rgba(236,72,153,0.7)';
+        ctx.setLineDash([2, 4]); ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(236,72,153,0.9)';
+        ctx.fillText('I ' + fx(M.lufsIntegrated, 1), W - padR - 42, y - 4);
+    }
+
+    // time axis
+    ctx.fillStyle = 'rgba(255,255,255,0.28)';
+    for (let t = 0; t <= dur; t += Math.max(30, Math.round(dur / 5))) {
+        ctx.fillText(fmtTime(t), X(t) - 8, H - 5);
+    }
+    return { X, Y, lo, hi, padL, padT, iw, ih, dur };
+}
+
+function drawSpectrum(canvas, M, refM) {
+    const { ctx, W, H } = setupCanvas(canvas, 240);
+    const padL = 40, padR = 10, padT = 12, padB = 24;
+    const iw = W - padL - padR, ih = H - padT - padB;
+    ctx.clearRect(0, 0, W, H);
+
+    const fMin = 20, fMax = 20000;
+    const X = f => padL + (Math.log2(f / fMin) / Math.log2(fMax / fMin)) * iw;
+
+    // y-range from data
+    let maxDb = -Infinity, minDb = Infinity;
+    for (let i = 0; i < M.logDb.length; i++) { const v = M.logDb[i]; if (Number.isFinite(v)) { if (v > maxDb) maxDb = v; if (v < minDb) minDb = v; } }
+    if (!Number.isFinite(maxDb)) { maxDb = 0; minDb = -100; }
+    maxDb = Math.ceil(maxDb / 10) * 10;
+    minDb = Math.max(maxDb - 80, Math.floor(minDb / 10) * 10);
+    const Y = v => padT + (1 - clamp((v - minDb) / (maxDb - minDb), 0, 1)) * ih;
+
+    // grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.055)';
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = '10px monospace';
+    ctx.lineWidth = 1;
+    const ticks = [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
+    for (const f of ticks) {
+        const x = Math.round(X(f)) + .5;
+        ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, padT + ih); ctx.stroke();
+        const lbl = f >= 1000 ? (f / 1000) + 'k' : String(f);
+        ctx.fillText(lbl, x - (lbl.length * 3), H - 8);
+    }
+    for (let d = minDb; d <= maxDb; d += 20) {
+        const y = Math.round(Y(d)) + .5;
+        ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+        ctx.fillText(String(d), 4, y + 3);
+    }
+
+    // pink reference: -3 dB/oct anchored at the mix's 1 kHz level
+    let lvl1k = 0, n1k = 0;
+    for (let i = 0; i < M.logFreq.length; i++) {
+        const f = M.logFreq[i];
+        if (f >= 800 && f <= 1250) { lvl1k += M.logDb[i]; n1k++; }
+    }
+    lvl1k = n1k ? lvl1k / n1k : maxDb - 10;
+    ctx.beginPath();
+    for (let i = 0; i < M.logFreq.length; i++) {
+        const f = clamp(M.logFreq[i], fMin, fMax);
+        const v = lvl1k - 3.0103 * Math.log2(f / 1000);
+        const x = X(f), y = Y(v);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([5, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // reference track
+    if (refM) {
+        ctx.beginPath();
+        for (let i = 0; i < refM.logFreq.length; i++) {
+            const f = clamp(refM.logFreq[i], fMin, fMax);
+            const x = X(f), y = Y(refM.logDb[i]);
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = 'rgba(34,211,238,0.75)';
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
+    }
+
+    // main curve fill
+    ctx.beginPath();
+    ctx.moveTo(X(clamp(M.logFreq[0], fMin, fMax)), padT + ih);
+    for (let i = 0; i < M.logFreq.length; i++) {
+        ctx.lineTo(X(clamp(M.logFreq[i], fMin, fMax)), Y(M.logDb[i]));
+    }
+    ctx.lineTo(X(clamp(M.logFreq[M.logFreq.length - 1], fMin, fMax)), padT + ih);
+    ctx.closePath();
+    const g = ctx.createLinearGradient(0, padT, 0, padT + ih);
+    g.addColorStop(0, 'rgba(168,85,247,0.38)');
+    g.addColorStop(1, 'rgba(168,85,247,0.02)');
+    ctx.fillStyle = g;
+    ctx.fill();
+
+    ctx.beginPath();
+    for (let i = 0; i < M.logFreq.length; i++) {
+        const x = X(clamp(M.logFreq[i], fMin, fMax)), y = Y(M.logDb[i]);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = '#c084fc';
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+
+    return { X, Y, fMin, fMax, padL, padT, iw, ih };
+}
+
+function drawWidth(canvas, M, refM) {
+    const { ctx, W, H } = setupCanvas(canvas, 132);
+    const padL = 40, padR = 10, padT = 12, padB = 22;
+    const iw = W - padL - padR, ih = H - padT - padB;
+    ctx.clearRect(0, 0, W, H);
+    if (M.nCh < 2) {
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.font = '12px monospace';
+        ctx.fillText('mono file — no stereo data', padL + 8, padT + ih / 2);
+        return;
+    }
+    const fMin = 20, fMax = 20000;
+    const X = f => padL + (Math.log2(f / fMin) / Math.log2(fMax / fMin)) * iw;
+    let hiW = 6, loW = -40;
+    for (let i = 0; i < M.logSide.length; i++) {
+        const v = M.logSide[i] - M.logMono[i];
+        if (Number.isFinite(v)) { if (v > hiW) hiW = v; if (v < loW) loW = v; }
+    }
+    hiW = Math.ceil((hiW + 2) / 6) * 6;
+    loW = Math.max(-48, Math.floor((loW - 2) / 6) * 6);
+    const Y = v => padT + (1 - clamp((v - loW) / (hiW - loW), 0, 1)) * ih;
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.055)';
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = '10px monospace';
+    for (let v = loW; v <= hiW; v += 6) {
+        const y = Math.round(Y(v)) + .5;
+        ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+        ctx.fillText(String(v), 4, y + 3);
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,0.055)';
+    [50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000].forEach(f => {
+        const x = Math.round(X(f)) + .5;
+        ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, padT + ih); ctx.stroke();
+    });
+
+    // mono-safe zone marker at 150 Hz
+    ctx.fillStyle = 'rgba(52,211,153,0.07)';
+    ctx.fillRect(padL, padT, X(150) - padL, ih);
+    ctx.fillStyle = 'rgba(52,211,153,0.55)';
+    ctx.font = '9px monospace';
+    ctx.fillText('MONO ZONE', padL + 4, padT + 11);
+
+    if (refM && refM.nCh > 1) {
+        ctx.beginPath();
+        for (let i = 0; i < refM.logFreq.length; i++) {
+            const x = X(clamp(refM.logFreq[i], fMin, fMax));
+            const y = Y(refM.logSide[i] - refM.logMono[i]);
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = 'rgba(34,211,238,0.55)';
+        ctx.lineWidth = 1.3;
+        ctx.setLineDash([4, 3]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    ctx.beginPath();
+    for (let i = 0; i < M.logFreq.length; i++) {
+        const x = X(clamp(M.logFreq[i], fMin, fMax));
+        const y = Y(M.logSide[i] - M.logMono[i]);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = '#22d3ee';
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+
+    return { X, Y, fMin, fMax };
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   9. APP
+   ═══════════════════════════════════════════════════════════════════════ */
+class App {
+    constructor() {
+        this.main = { file: null, buffer: null, M: null, roasts: null };
+        this.ref = { file: null, buffer: null, M: null };
+        this.playerMain = new Player('main', 'violet');
+        this.playerRef = new Player('ref', 'cyan');
+        this.busy = false;
+        this._bind();
+        this._renderHistory();
+    }
+
+    _bind() {
+        const dz = $('#drop-zone'), rz = $('#ref-zone');
+        const fi = $('#file-input'), ri = $('#ref-input');
+
+        dz.addEventListener('click', () => fi.click());
+        rz.addEventListener('click', () => ri.click());
+        [dz, rz].forEach(z => {
+            z.addEventListener('dragover', e => { e.preventDefault(); z.classList.add('dragover'); });
+            z.addEventListener('dragleave', () => z.classList.remove('dragover'));
+            z.addEventListener('drop', e => {
+                e.preventDefault(); z.classList.remove('dragover');
+                const f = e.dataTransfer.files && e.dataTransfer.files[0];
+                if (!f) return;
+                if (z === dz) this._loadMain(f); else this._loadRef(f);
+            });
+        });
+        fi.addEventListener('change', e => { if (e.target.files[0]) this._loadMain(e.target.files[0]); });
+        ri.addEventListener('change', e => { if (e.target.files[0]) this._loadRef(e.target.files[0]); });
+
+        $('#btn-analyze').addEventListener('click', () => this._analyze());
+        $('#btn-reset').addEventListener('click', () => this._reset());
+        $('#btn-reanalyze').addEventListener('click', () => this._reset());
+        $('#btn-export').addEventListener('click', () => this._export());
+        $('#btn-copy').addEventListener('click', () => this._copy());
+
+        document.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            if (e.code === 'Space') { e.preventDefault(); this.playerMain.toggle(); }
+            if (e.key === 'r' || e.key === 'R') {
+                if (!$('#btn-analyze').disabled && !this.busy) this._analyze();
+            }
+        });
+
+        // canvas hover tooltips
+        this._hover($('#spec-canvas'), $('#spec-tip'));
+        this._hover($('#width-canvas'), $('#width-tip'));
+        this._hover($('#loud-canvas'), $('#loud-tip'));
+    }
+
+    _hover(canvas, tip) {
+        canvas.addEventListener('mousemove', e => {
+            const d = canvas._drawInfo;
+            if (!d) { tip.classList.remove('on'); return; }
+            const r = canvas.getBoundingClientRect();
+            const x = e.clientX - r.left, y = e.clientY - r.top;
+            const out = this._readCanvas(canvas, d, x, y);
+            if (!out) { tip.classList.remove('on'); return; }
+            tip.textContent = out.label;
+            tip.style.left = x + 'px';
+            tip.style.top = y + 'px';
+            tip.classList.add('on');
+        });
+        canvas.addEventListener('mouseleave', () => tip.classList.remove('on'));
+    }
+
+    _readCanvas(canvas, d, x, y) {
+        const M = this.main.M;
+        if (!M) return null;
+        if (canvas.id === 'spec-canvas') {
+            const f = d.fMin * Math.pow(d.fMax / d.fMin, clamp((x - d.padL) / d.iw, 0, 1));
+            let best = 0, bd = Infinity;
+            for (let i = 0; i < M.logFreq.length; i++) {
+                const dd = Math.abs(Math.log(M.logFreq[i] / f));
+                if (dd < bd) { bd = dd; best = i; }
+            }
+            let txt = fmtHz(f) + '  ·  ' + fx(M.logDb[best], 1) + ' dB';
+            if (this.ref.M) {
+                let rb = 0, rd = Infinity;
+                for (let i = 0; i < this.ref.M.logFreq.length; i++) {
+                    const dd = Math.abs(Math.log(this.ref.M.logFreq[i] / f));
+                    if (dd < rd) { rd = dd; rb = i; }
+                }
+                txt += '  ·  ref ' + fx(this.ref.M.logDb[rb], 1);
+            }
+            return { label: txt };
+        }
+        if (canvas.id === 'width-canvas') {
+            if (M.nCh < 2) return null;
+            const f = d.fMin * Math.pow(d.fMax / d.fMin, clamp((x - 40) / (canvas.getBoundingClientRect().width - 50), 0, 1));
+            let best = 0, bd = Infinity;
+            for (let i = 0; i < M.logFreq.length; i++) {
+                const dd = Math.abs(Math.log(M.logFreq[i] / f));
+                if (dd < bd) { bd = dd; best = i; }
+            }
+            return { label: fmtHz(f) + '  ·  side/mid ' + fx(M.logSide[best] - M.logMono[best], 1) + ' dB  ·  corr ' + fx(M.logCorr[best], 2) };
+        }
+        if (canvas.id === 'loud-canvas') {
+            const pts = M.loudnessCurve;
+            if (!pts.length) return null;
+            const t = clamp((x - d.padL) / d.iw, 0, 1) * d.dur;
+            let best = pts[0], bd = Infinity;
+            for (const p of pts) { const dd = Math.abs(p.t - t); if (dd < bd) { bd = dd; best = p; } }
+            return { label: fmtTime(best.t) + '  ·  ' + fx(best.lufs, 1) + ' LUFS' };
+        }
+        return null;
+    }
+
+    /* ── loading ── */
+    async _decode(file) {
+        if (file.size > 260 * 1024 * 1024) throw new Error('File is over 260 MB. Bounce a shorter section.');
+        const ab = await file.arrayBuffer();
+        // One context, closed immediately — v1 leaked a context per file and died after ~6 uploads.
+        const AC = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AC();
+        try {
+            const buf = await ctx.decodeAudioData(ab);
+            return buf;
+        } finally {
+            if (ctx.close) ctx.close();
+        }
+    }
+
+    async _loadMain(file) {
+        if (this.busy) return;
+        this._showProgress('Decoding audio…', 8);
+        try {
+            const buf = await this._decode(file);
+            this.main = { file, buffer: buf, M: null, roasts: null };
+            $('#prow-main').classList.add('visible');   // make it visible BEFORE drawing
+            this.playerMain.load(file, buf);
+            $('#name-main').textContent = file.name;
+            $('#meta-main').textContent =
+                `${fmtTime(buf.duration)} · ${buf.sampleRate} Hz · ${buf.numberOfChannels === 2 ? 'stereo' : 'mono'} · ` +
+                `${(file.size / 1048576).toFixed(1)} MB`;
+            const dz = $('#drop-zone');
+            dz.querySelector('.icon').textContent = '✅';
+            dz.querySelector('.label').innerHTML = `<strong>${this._esc(file.name)}</strong>`;
+            dz.querySelector('.formats').textContent = 'Click or drop to replace';
+            dz.style.padding = '20px';
+            $('#btn-analyze').disabled = false;
+            $('#btn-reset').style.display = 'inline-flex';
+            $('#results').classList.remove('visible');
+            this._hideProgress();
+        } catch (err) {
+            console.error(err);
+            this._showProgress('Could not decode that file — try WAV or MP3. ' + (err.message || ''), 0);
+            setTimeout(() => this._hideProgress(), 4200);
+        }
+    }
+
+    async _loadRef(file) {
+        if (this.busy) return;
+        this._showProgress('Decoding reference…', 8);
+        try {
+            const buf = await this._decode(file);
+            this.ref = { file, buffer: buf, M: null };
+            $('#prow-ref').classList.add('visible');    // ditto
+            this.playerRef.load(file, buf);
+            $('#name-ref').textContent = file.name;
+            $('#meta-ref').textContent = `${fmtTime(buf.duration)} · ${buf.sampleRate} Hz · ${(file.size / 1048576).toFixed(1)} MB`;
+            const rz = $('#ref-zone');
+            rz.querySelector('.icon').textContent = '🎯';
+            rz.querySelector('.label').innerHTML = `<strong>${this._esc(file.name)}</strong>`;
+            rz.querySelector('.formats').textContent = 'Click or drop to replace';
+            rz.style.padding = '20px';
+            this._hideProgress();
+        } catch (err) {
+            console.error(err);
+            this._showProgress('Reference failed to decode. ' + (err.message || ''), 0);
+            setTimeout(() => this._hideProgress(), 4200);
+        }
+    }
+
+    _esc(s) {
+        return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    /* ── analysis ── */
+    async _analyze() {
+        if (this.busy || !this.main.buffer) return;
+        this.busy = true;
+        const btn = $('#btn-analyze');
+        btn.disabled = true;
+        const t0 = performance.now();
+        try {
+            this._showProgress('Starting…', 2);
+            const M = await analyzeBuffer(this.main.buffer, (msg, pct) => this._showProgress(msg, pct));
+            this.main.M = M;
+
+            if (this.ref.buffer) {
+                this._showProgress('Analyzing reference…', 60);
+                this.ref.M = await analyzeBuffer(this.ref.buffer, (msg, pct) => this._showProgress('Reference: ' + msg, 60 + pct * 0.36));
+            } else {
+                this.ref.M = null;
+            }
+
+            this.main.roasts = Roasts.build(M);
+            this._render();
+            this._pushHistory(M);
+            this._hideProgress();
+            console.log(`[Aura] analyzed in ${Math.round(performance.now() - t0)} ms · score ${M.score} · ${fx(M.lufsIntegrated, 1)} LUFS · ${fx(M.truePeakDb, 2)} dBTP`);
+        } catch (err) {
+            console.error(err);
+            this._showProgress('Analysis failed: ' + (err.message || err), 0);
+            setTimeout(() => this._hideProgress(), 5000);
+        } finally {
+            this.busy = false;
+            btn.disabled = false;
+        }
+    }
+
+    /* ── render ── */
+    _render() {
+        const M = this.main.M, refM = this.ref.M;
+        $('#results').classList.add('visible');
+        this._renderHero(M);
+        this._renderLoudness(M, refM);
+        this._renderSpectrum(M, refM);
+        this._renderStereo(M, refM);
+        this._renderAB(M, refM);
+        this._renderRoasts(M);
+        $('#results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    _renderHero(M) {
+        const s = M.score;
+        const ring = $('#gauge-ring');
+        const C = 2 * Math.PI * 76;
+        ring.setAttribute('stroke-dasharray', C.toFixed(1));
+        // setTimeout, not rAF: rAF is unreliable inside a background tab and the gauge
+        // would silently render empty.
+        setTimeout(() => ring.setAttribute('stroke-dashoffset', (C * (1 - s / 100)).toFixed(1)), 40);
+        $('#gauge-num').textContent = s;
+
+        let grade, gcls;
+        if (s >= 88) { grade = 'RELEASE READY'; gcls = 'rgba(52,211,153,.14);color:#34d399'; }
+        else if (s >= 74) { grade = 'STRONG'; gcls = 'rgba(52,211,153,.10);color:#34d399'; }
+        else if (s >= 58) { grade = 'NEEDS WORK'; gcls = 'rgba(251,191,36,.13);color:#fbbf24'; }
+        else if (s >= 40) { grade = 'ROPY'; gcls = 'rgba(249,115,22,.13);color:#fb923c'; }
+        else { grade = 'RESET'; gcls = 'rgba(248,113,113,.13);color:#f87171'; }
+        const g = $('#grade');
+        g.textContent = grade;
+        g.style.background = gcls.split(';')[0];
+        g.style.color = gcls.split('color:')[1];
+
+        const sm = Roasts.summary(M, this.main.roasts);
+        $('#verdict').innerHTML = `<strong>${sm.head}</strong> ${sm.body}`;
+        $('#summary-text').textContent = sm.head + ' ' + sm.body;
+
+        const cats = M.categories;
+        $('#cats').innerHTML = cats.map(c => {
+            const pct = clamp(c.score, 0, 100);
+            const col = pct >= 75 ? '#34d399' : pct >= 50 ? '#fbbf24' : '#f87171';
+            return `<div class="cat">
+                <div class="cl"><span>${c.label}</span><span class="cv" style="color:${col}">${Math.round(pct)}</span></div>
+                <div class="cb"><div class="cf" data-w="${pct}" style="background:${col}"></div></div>
+            </div>`;
+        }).join('');
+        setTimeout(() => {
+            document.querySelectorAll('#cats .cf').forEach(el => { el.style.width = el.dataset.w + '%'; });
+        }, 40);
+    }
+
+    _renderLoudness(M, refM) {
+        const lufsOk = M.lufsIntegrated >= -14 && M.lufsIntegrated <= -11;
+        const tpOk = M.truePeakDb <= -1;
+        const plrOk = M.plr >= 8 && M.plr <= 16;
+        const lraOk = M.lra >= 4;
+        const tiles = [
+            {
+                l: 'Integrated', v: fx(M.lufsIntegrated, 1), u: 'LUFS',
+                n: Number.isFinite(M.lufsIntegrated)
+                    ? (lufsOk ? 'Streaming sweet spot' : M.lufsIntegrated > -11 ? `${fx(M.lufsIntegrated + 14, 1)} dB over Spotify target` : `${fx(-14 - M.lufsIntegrated, 1)} dB under target`)
+                    : 'no signal',
+                c: Number.isFinite(M.lufsIntegrated) ? (lufsOk ? 'good' : Math.abs(M.lufsIntegrated + 14) < 4 ? 'warn' : 'bad') : 'bad'
+            },
+            {
+                l: 'True peak', v: fx(M.truePeakDb, 2), u: 'dBTP',
+                n: tpOk ? 'Safe headroom' : M.truePeakDb > 0 ? 'Over — will clip DACs' : 'Tight — risky encode',
+                c: tpOk ? 'good' : M.truePeakDb > -0.3 ? 'bad' : 'warn'
+            },
+            {
+                l: 'PLR', v: fx(M.plr, 1), u: 'dB',
+                n: plrOk ? 'Punchy, healthy' : M.plr < 8 ? 'Squashed' : 'Wide / unmastered',
+                c: plrOk ? 'good' : M.plr < 6 ? 'bad' : 'warn'
+            },
+            {
+                l: 'LRA', v: fx(M.lra, 1), u: 'LU',
+                n: lraOk ? 'Arrangement breathes' : 'Flat across track',
+                c: lraOk ? 'good' : 'warn'
+            },
+            {
+                l: 'Sample peak', v: fx(M.samplePeakDb, 2), u: 'dBFS',
+                n: `crest ${fx(M.crest, 1)} dB`,
+                c: M.samplePeakDb > -0.1 ? 'warn' : 'good'
+            },
+            {
+                l: 'Mono fold', v: !Number.isFinite(M.lufsMono) ? '∞' : fx(M.lufsMono, 1), u: Number.isFinite(M.lufsMono) ? 'LUFS' : '',
+                n: M.monoDrop >= 99 ? 'Total cancellation in mono'
+                    : M.monoDrop > 1.5 ? `−${fx(M.monoDrop, 1)} dB vs stereo`
+                    : 'Holds up in mono',
+                c: M.monoDrop > 3 ? 'bad' : M.monoDrop > 1.5 ? 'warn' : 'good'
+            }
+        ];
+        $('#loud-tiles').innerHTML = tiles.map(t =>
+            `<div class="tile ${t.c}">
+                <div class="tl">${t.l}</div>
+                <div class="tv">${t.v}<small>${t.u}</small></div>
+                <div class="tn">${t.n}</div>
+            </div>`).join('');
+
+        const info = drawLoudness($('#loud-canvas'), M, refM);
+        $('#loud-canvas')._drawInfo = info;
+    }
+
+    _renderSpectrum(M, refM) {
+        const info = drawSpectrum($('#spec-canvas'), M, refM);
+        $('#spec-canvas')._drawInfo = info;
+
+        if (refM) {
+            $('#spec-legend').innerHTML =
+                `<span><i style="background:#a855f7"></i>Your mix</span>
+                 <span><i style="background:rgba(255,255,255,.35)"></i>Pink reference (−3 dB/oct)</span>
+                 <span><i style="background:#22d3ee"></i>${this._esc(this.ref.file.name)}</span>`;
+        }
+
+        const maxDev = Math.max(6, ...M.bands.map(b => Math.abs(b.dev)));
+        $('#bands').innerHTML = M.bands.map(b => {
+            const dev = b.dev;
+            const pct = clamp((Math.abs(dev) / maxDev) * 50, 0, 50);
+            const col = Math.abs(dev) < 1.5 ? 'rgba(148,163,184,.55)'
+                : dev > 0 ? (dev > 4 ? '#f87171' : '#fbbf24') : '#22d3ee';
+            const side = dev >= 0 ? 'left:50%' : 'right:50%';
+            return `<div class="band-row">
+                <span class="bn">${b.name}</span>
+                <div class="band-track">
+                    <div class="band-zero" style="left:50%"></div>
+                    <div class="band-fill" style="${side};width:${pct}%;background:${col}"></div>
+                </div>
+                <span class="bv" style="color:${col}">${dev >= 0 ? '+' : ''}${fx(dev, 1)}</span>
+            </div>`;
+        }).join('');
+
+        // tilt + centroid note
+        const tiltWord = M.tilt > 0 ? 'bright / rising' : M.tilt > -2 ? 'fairly flat' : M.tilt > -4.5 ? 'near-pink' : M.tilt > -6 ? 'dark' : 'very dark';
+        const note = document.createElement('div');
+        note.className = 'note';
+        note.innerHTML = `<b>Spectral tilt:</b> ${fx(M.tilt, 2)} dB/oct (${tiltWord}) ·
+            <b>centroid:</b> ${fmtHz(M.centroid)} ·
+            <b>85% rolloff:</b> ${fmtHz(M.rolloff)} ·
+            <b>flatness:</b> ${fx(M.flatness, 2)}<br>
+            Pink noise is −3 dB/oct. Dead flat measures harsh because of how hearing works, so a warm mix
+            lands around −4 to −5 and a bright one around −1. Any ending in this range can be right — the
+            <i>internal</i> balance is what the bars above judge.`;
+        const wrap = $('#bands');
+        if (wrap.nextElementSibling && wrap.nextElementSibling.classList.contains('note')) {
+            wrap.nextElementSibling.replaceWith(note);
+        } else {
+            wrap.after(note);
+        }
+    }
+
+    _renderStereo(M, refM) {
+        if (M.nCh < 2) {
+            $('#stereo-tiles').innerHTML = `<div class="tile"><div class="tl">Mono file</div><div class="tv">1<small>ch</small></div><div class="tn">Stereo analysis skipped</div></div>`;
+            drawWidth($('#width-canvas'), M, refM);
+            return;
+        }
+        const corrCol = M.corr > 0.3 ? 'good' : M.corr > 0 ? 'warn' : 'bad';
+        const lowCol = M.corrLow > 0.8 ? 'good' : M.corrLow > 0.5 ? 'warn' : 'bad';
+        let bodyW = 0;
+        for (let i = 2; i < 6; i++) bodyW += M.bands[i].widthDb;
+        bodyW /= 4;
+        const tiles = [
+            {
+                l: 'Correlation', v: fx(M.corr, 2), u: '',
+                n: M.corr > 0.3 ? 'Solid centre' : M.corr > 0 ? 'Wide but stable' : 'Phase inverted!',
+                c: corrCol
+            },
+            {
+                l: 'Low-end corr', v: fx(M.corrLow, 2), u: '',
+                n: M.corrLow > 0.8 ? 'Mono-safe bass' : M.corrLow > 0.5 ? 'Slight cancellation' : 'Bass will vanish in mono',
+                c: lowCol
+            },
+            {
+                l: 'Body width', v: fx(bodyW, 1), u: 'dB',
+                n: bodyW < -14 ? 'Nearly mono' : bodyW > 3 ? 'Too wide' : 'Well spread',
+                c: bodyW < -14 ? 'warn' : bodyW > 3 ? 'warn' : 'good'
+            },
+            {
+                l: 'Mono drop', v: M.monoDrop >= 99 ? '∞' : fx(M.monoDrop, 2), u: M.monoDrop >= 99 ? '' : 'dB',
+                n: M.monoDrop >= 99 ? 'Goes silent in mono' : M.monoDrop > 3 ? 'Loses a lot in mono' : M.monoDrop > 1.5 ? 'Slight loss' : 'Negligible',
+                c: M.monoDrop > 3 ? 'bad' : M.monoDrop > 1.5 ? 'warn' : 'good'
+            }
+        ];
+        $('#stereo-tiles').innerHTML = tiles.map(t =>
+            `<div class="tile ${t.c}"><div class="tl">${t.l}</div>
+             <div class="tv">${t.v}<small>${t.u}</small></div>
+             <div class="tn">${t.n}</div></div>`).join('');
+        const info = drawWidth($('#width-canvas'), M, refM);
+        $('#width-canvas')._drawInfo = info;
+    }
+
+    _renderAB(M, refM) {
+        const card = $('#ab-card');
+        if (!refM) { card.style.display = 'none'; return; }
+        card.style.display = 'block';
+        $('#ab-ref-name').textContent = this.ref.file.name;
+
+        const rows = [
+            { l: 'Integrated loudness', a: M.lufsIntegrated, b: refM.lufsIntegrated, u: 'LUFS', d: 1, good: 'low' },
+            { l: 'True peak', a: M.truePeakDb, b: refM.truePeakDb, u: 'dBTP', d: 2, good: 'low' },
+            { l: 'PLR (dynamics)', a: M.plr, b: refM.plr, u: 'dB', d: 1, good: 'high' },
+            { l: 'LRA', a: M.lra, b: refM.lra, u: 'LU', d: 1, good: 'high' },
+            { l: 'Correlation', a: M.corr, b: refM.corr, u: '', d: 2, good: 'none' },
+            { l: 'Low-end corr', a: M.corrLow, b: refM.corrLow, u: '', d: 2, good: 'high' },
+            { l: 'Spectral tilt', a: M.tilt, b: refM.tilt, u: 'dB/oct', d: 2, good: 'none' },
+            { l: 'Centroid', a: M.centroid, b: refM.centroid, u: 'Hz', d: 0, good: 'none', hz: true }
+        ];
+
+        let html = `<thead><tr><th>Metric</th><th>Yours</th><th>Reference</th><th>Δ</th></tr></thead><tbody>`;
+        for (const r of rows) {
+            const delta = r.a - r.b;
+            let cls = 'flat';
+            if (Math.abs(delta) > (r.d >= 2 ? 0.05 : 0.5)) cls = delta > 0 ? 'up' : 'down';
+            const av = r.hz ? fmtHz(r.a) : fx(r.a, r.d);
+            const bv = r.hz ? fmtHz(r.b) : fx(r.b, r.d);
+            const dv = (delta >= 0 ? '+' : '') + (r.hz ? fmtHz(Math.abs(delta)) : fx(delta, r.d));
+            html += `<tr><td>${r.l}</td><td class="mine">${av}<span style="opacity:.4;font-size:.7em"> ${r.u}</span></td>
+                     <td class="refc">${bv}<span style="opacity:.4;font-size:.7em"> ${r.u}</span></td>
+                     <td class="delta ${cls}">${dv}</td></tr>`;
+        }
+        html += `</tbody>`;
+        $('#ab-table').innerHTML = html;
+
+        // band deltas
+        const bandDeltas = M.bands.map((b, i) => ({ name: b.name, d: b.dev - refM.bands[i].dev, peak: b.peakFreq }))
+            .filter(b => Math.abs(b.d) > 1.2)
+            .sort((a, b) => Math.abs(b.d) - Math.abs(a.d));
+
+        let note = `<b>Gain to match loudness:</b> ${fx(refM.lufsIntegrated - M.lufsIntegrated, 1)} dB toward the reference.`;
+        if (bandDeltas.length) {
+            note += `<br><b>Where you differ from the reference:</b> ` +
+                bandDeltas.slice(0, 4).map(b =>
+                    `${b.name} ${b.d > 0 ? '+' : ''}${fx(b.d, 1)} dB`).join(' · ') +
+                `. Match those and the two mixes start sounding like siblings.`;
+        } else {
+            note += ` Your spectral balance is within ~1 dB of the reference across every band. That's impressively close.`;
+        }
+        const lufsGap = M.lufsIntegrated - refM.lufsIntegrated;
+        if (Math.abs(lufsGap) > 2) {
+            note += `<br><b>Level warning:</b> the ${fx(Math.abs(lufsGap), 1)} dB loudness gap will make the comparison lie to you — turn the louder one down before judging tone.`;
+        }
+        $('#ab-note').innerHTML = note;
+    }
+
+    _renderRoasts(M) {
+        const list = $('#roast-list');
+        const roasts = this.main.roasts;
+        $('#roast-count').textContent = `${roasts.length} finding${roasts.length === 1 ? '' : 's'}`;
+        const order = { critical: 0, warning: 1, info: 2, good: 3 };
+        roasts.sort((a, b) => order[a.sev] - order[b.sev]);
+        list.innerHTML = roasts.map((r, i) => `
+            <div class="roast ${r.sev}" style="animation-delay:${Math.min(i * 55, 400)}ms">
+                <div class="rh">
+                    <span class="ri">${r.icon}</span>
+                    <span class="rt">${r.title}</span>
+                    <span class="sev ${r.sev}">${r.sev}</span>
+                </div>
+                <div class="rr">${r.text}</div>
+                ${r.evidence.length ? `<div class="rev">${r.evidence.map(e => `<span>${e}</span>`).join('')}</div>` : ''}
+                ${r.fix ? `<div class="fix">
+                    <div class="fl">🎛️ ${r.fix.plugin}</div>
+                    <div>${r.fix.text}</div>
+                    <code>${r.fix.code}</code>
+                </div>` : ''}
+            </div>`).join('');
+    }
+
+    /* ── history ── */
+    _pushHistory(M) {
+        const key = 'abc2_history';
+        let h = [];
+        try { h = JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { h = []; }
+        h.unshift({
+            name: this.main.file.name,
+            ts: Date.now(),
+            score: M.score,
+            lufs: Number.isFinite(M.lufsIntegrated) ? +M.lufsIntegrated.toFixed(1) : null,
+            tp: +M.truePeakDb.toFixed(2),
+            plr: +M.plr.toFixed(1),
+            ref: this.ref.file ? this.ref.file.name : null
+        });
+        h = h.slice(0, 30);
+        try { localStorage.setItem(key, JSON.stringify(h)); } catch (e) {}
+        this._renderHistory();
+    }
+
+    _renderHistory() {
+        const key = 'abc2_history';
+        let h = [];
+        try { h = JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { h = []; }
+        const card = $('#history-card');
+        if (!h.length) { card.classList.remove('visible'); return; }
+        card.classList.add('visible');
+        $('#hist-count').textContent = h.length;
+        $('#hist-list').innerHTML = h.map((e, i) => {
+            const col = e.score >= 74 ? '#34d399' : e.score >= 50 ? '#fbbf24' : '#f87171';
+            const d = new Date(e.ts);
+            return `<div class="hrow">
+                <div class="hs" style="color:${col};background:${col}1f">${e.score}</div>
+                <div class="hn">${this._esc(e.name)}<small>${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}${e.ref ? ' · vs ' + this._esc(e.ref) : ''}</small></div>
+                <div class="hm">${e.lufs !== null ? fx(e.lufs, 1) + ' LUFS' : '—'}<br>${fx(e.tp, 2)} dBTP</div>
+                <button class="hx" data-i="${i}" title="Remove">✕</button>
+            </div>`;
+        }).join('');
+        $('#hist-list').querySelectorAll('.hx').forEach(b => {
+            b.addEventListener('click', () => {
+                let arr = [];
+                try { arr = JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) {}
+                arr.splice(+b.dataset.i, 1);
+                localStorage.setItem(key, JSON.stringify(arr));
+                this._renderHistory();
+            });
+        });
+    }
+
+    /* ── export ── */
+    _reportObj() {
+        const M = this.main.M;
+        const R = this.ref.M;
+        const pick = x => x ? {
+            file: x === M ? this.main.file.name : this.ref.file.name,
+            duration: +x.duration.toFixed(2),
+            sampleRate: x.fs,
+            channels: x.nCh,
+            score: x.score,
+            categories: x.categories.reduce((a, c) => (a[c.label] = Math.round(c.score), a), {}),
+            integratedLufs: +x.lufsIntegrated.toFixed(2),
+            shortTermMaxLufs: +x.lufsShortMax.toFixed(2),
+            lra: +x.lra.toFixed(2),
+            truePeakDbtp: +x.truePeakDb.toFixed(3),
+            samplePeakDbfs: +x.samplePeakDb.toFixed(3),
+            plrDb: +x.plr.toFixed(2),
+            crestDb: +x.crest.toFixed(2),
+            correlation: +x.corr.toFixed(3),
+            lowBandCorrelation: +x.corrLow.toFixed(3),
+            monoFoldLufs: Number.isFinite(x.lufsMono) ? +x.lufsMono.toFixed(2) : null,
+            monoFoldDropDb: +x.monoDrop.toFixed(2),
+            tiltDbPerOctave: +x.tilt.toFixed(3),
+            centroidHz: Math.round(x.centroid),
+            rolloff85Hz: Math.round(x.rolloff),
+            dcOffset: +x.dcOffset.toFixed(6),
+            clipPct: +x.clipPct.toFixed(4),
+            longestClipRun: x.maxClipRun,
+            bands: x.bands.map(b => ({
+                name: b.name, range: [b.lo, b.hi],
+                deviationDb: +b.dev.toFixed(2),
+                sideMidDb: +b.widthDb.toFixed(2),
+                correlation: +b.corr.toFixed(3),
+                peakHz: Math.round(b.peakFreq)
+            }))
+        } : null;
+
+        return {
+            tool: 'Aura Beat Critic v2',
+            generated: new Date().toISOString(),
+            mine: pick(M),
+            reference: pick(R),
+            findings: this.main.roasts.map(r => ({
+                severity: r.sev, title: r.title, evidence: r.evidence,
+                fix: r.fix ? `${r.fix.plugin}: ${r.fix.text} [${r.fix.code}]` : null
+            }))
+        };
+    }
+
+    _export() {
+        const data = JSON.stringify(this._reportObj(), null, 2);
+        const blob = new Blob([data], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'aura-beat-critic-' + this.main.file.name.replace(/\.[^.]+$/, '') + '.json';
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }
+
+    _copy() {
+        const M = this.main.M;
+        const lines = [
+            `AURA BEAT CRITIC v2 — ${this.main.file.name}`,
+            `Score: ${M.score}/100`,
+            `Loudness: ${fx(M.lufsIntegrated, 1)} LUFS integrated · ${fx(M.truePeakDb, 2)} dBTP · PLR ${fx(M.plr, 1)} dB · LRA ${fx(M.lra, 1)} LU`,
+            `Stereo: corr ${fx(M.corr, 2)} (low ${fx(M.corrLow, 2)}) · mono drop ${fx(M.monoDrop, 2)} dB`,
+            `Spectrum: tilt ${fx(M.tilt, 2)} dB/oct · centroid ${fmtHz(M.centroid)}`,
+            '',
+            ...this.main.roasts.map(r => `[${r.sev.toUpperCase()}] ${r.title}\n  ${r.text.replace(/<[^>]+>/g, '')}${r.fix ? `\n  FIX (${r.fix.plugin}): ${r.fix.text} — ${r.fix.code}` : ''}`)
+        ];
+        const txt = lines.join('\n');
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(txt).then(() => {
+                const b = $('#btn-copy');
+                const o = b.textContent;
+                b.textContent = '✓ Copied';
+                setTimeout(() => (b.textContent = o), 1600);
+            }).catch(() => window.prompt('Copy this:', txt));
+        } else {
+            window.prompt('Copy this:', txt);
+        }
+    }
+
+    /* ── misc ── */
+    _showProgress(msg, pct) {
+        const w = $('#progress-wrap');
+        w.classList.add('visible');
+        $('#progress-label').textContent = msg;
+        $('#progress-pct').textContent = Math.round(pct) + '%';
+        $('#progress-fill').style.width = pct + '%';
+    }
+    _hideProgress() { $('#progress-wrap').classList.remove('visible'); }
+
+    _reset() {
+        this.playerMain.clear();
+        this.playerRef.clear();
+        this.main = { file: null, buffer: null, M: null, roasts: null };
+        this.ref = { file: null, buffer: null, M: null };
+        $('#file-input').value = '';
+        $('#ref-input').value = '';
+        $('#prow-main').classList.remove('visible');
+        $('#prow-ref').classList.remove('visible');
+        $('#results').classList.remove('visible');
+        $('#btn-analyze').disabled = true;
+        $('#btn-reset').style.display = 'none';
+        const dz = $('#drop-zone');
+        dz.style.padding = '';
+        dz.querySelector('.icon').textContent = '🎤';
+        dz.querySelector('.label').innerHTML = 'Drop your track here or <strong>click to browse</strong>';
+        dz.querySelector('.formats').textContent = 'MP3 · WAV · OGG · FLAC · M4A';
+        const rz = $('#ref-zone');
+        rz.style.padding = '';
+        rz.querySelector('.icon').textContent = '🎯';
+        rz.querySelector('.label').innerHTML = '<strong>Reference track</strong><br><span style="font-size:.78rem">optional A/B target</span>';
+        rz.querySelector('.formats').textContent = 'FLAC direct from the shop = best';
+        this._hideProgress();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   10. PARTICLES
+   ═══════════════════════════════════════════════════════════════════════ */
+(function particles() {
+    const canvas = $('#particles');
+    const ctx = canvas.getContext('2d');
+    let ps = [], raf = null;
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    function build() {
+        ps = [];
+        const n = Math.min(52, Math.round(window.innerWidth / 26));
+        for (let i = 0; i < n; i++) {
+            ps.push({
+                x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+                r: Math.random() * 1.9 + 0.4,
+                dx: (Math.random() - 0.5) * 0.26, dy: (Math.random() - 0.5) * 0.26,
+                o: Math.random() * 0.26 + 0.07
+            });
+        }
+    }
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (const p of ps) {
+            p.x += p.dx; p.y += p.dy;
+            if (p.x < -5) p.x = canvas.width + 5;
+            if (p.x > canvas.width + 5) p.x = -5;
+            if (p.y < -5) p.y = canvas.height + 5;
+            if (p.y > canvas.height + 5) p.y = -5;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, 6.28318);
+            ctx.fillStyle = `rgba(168,85,247,${p.o})`;
+            ctx.fill();
+        }
+        raf = requestAnimationFrame(draw);
+    }
+    resize(); build(); draw();
+    window.addEventListener('resize', () => { resize(); build(); });
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) { cancelAnimationFrame(raf); raf = null; }
+        else if (!raf) draw();
+    });
+})();
+
+/* ═══════════════════════════════════════════════════════════════════════
+   11. SELF-TEST (?selftest) — verifies the DSP against known answers
+   ═══════════════════════════════════════════════════════════════════════ */
+async function selfTest() {
+    const R = [];
+    const ok = (name, pass, detail) => R.push({ name, pass, detail });
+    const oc = new OfflineAudioContext(2, 1024, 48000);
+    const mk = (len, fs) => oc.createBuffer(2, len, fs);
+
+    // 1. FFT peak bin
+    {
+        const N = 4096, fft = new FFT(N);
+        const re = new Float64Array(N), im = new Float64Array(N);
+        for (let i = 0; i < N; i++) re[i] = Math.sin(2 * Math.PI * 100 * i / N);
+        fft.transform(re, im);
+        let best = 0, bv = -1;
+        for (let k = 1; k < N / 2; k++) {
+            const m = re[k] * re[k] + im[k] * im[k];
+            if (m > bv) { bv = m; best = k; }
+        }
+        ok('FFT locates bin 100', best === 100, 'argmax bin = ' + best);
+    }
+
+    // 2. EBU Tech 3341, case 1: stereo 1 kHz sine, −23.0 dBFS PEAK per channel, in phase
+    //    → integrated = −23.0 LUFS ±0.1. This is the conformance test real meters must pass.
+    {
+        const fs = 48000, len = fs * 6;
+        const b = mk(len, fs);
+        const L = b.getChannelData(0), Rr = b.getChannelData(1);
+        const amp = Math.pow(10, -23 / 20);       // peak, not RMS
+        for (let i = 0; i < len; i++) {
+            const v = amp * Math.sin(2 * Math.PI * 1000 * i / fs);
+            L[i] = v; Rr[i] = v;
+        }
+        const M = await analyzeBuffer(b, () => {});
+        ok('EBU 3341 #1: stereo 1 kHz @ −23 dBFS peak → −23.0 LUFS (±0.1)',
+            Math.abs(M.lufsIntegrated + 23) < 0.1,
+            'measured ' + M.lufsIntegrated.toFixed(3) + ' LUFS');
+        ok('Correlation: identical L/R → +1.00', Math.abs(M.corr - 1) < 0.01, 'measured ' + M.corr.toFixed(3));
+        ok('Score sane for a clean sine', M.score > 40 && M.score < 100, 'score ' + M.score);
+    }
+
+    // 2b. ITU-R BS.1770: 0 dBFS 1 kHz sine in ONE channel → −3.01 LKFS
+    {
+        const fs = 48000, len = fs * 6;
+        const b = oc.createBuffer(1, len, fs);
+        const L = b.getChannelData(0);
+        for (let i = 0; i < len; i++) L[i] = Math.sin(2 * Math.PI * 1000 * i / fs);
+        const M = await analyzeBuffer(b, () => {});
+        ok('ITU: mono 0 dBFS 1 kHz sine → −3.01 LKFS (±0.1)',
+            Math.abs(M.lufsIntegrated + 3.011) < 0.1,
+            'measured ' + M.lufsIntegrated.toFixed(3) + ' LUFS');
+        ok('Mono file does not double-count channels', M.nCh === 1 && M.corr === 1, 'channels ' + M.nCh);
+    }
+
+    // 3. Inverted phase
+    {
+        const fs = 48000, len = fs * 3;
+        const b = mk(len, fs);
+        const L = b.getChannelData(0), Rr = b.getChannelData(1);
+        for (let i = 0; i < len; i++) {
+            const v = 0.3 * Math.sin(2 * Math.PI * 220 * i / fs);
+            L[i] = v; Rr[i] = -v;
+        }
+        const M = await analyzeBuffer(b, () => {});
+        ok('Correlation: inverted L/R → −1.00', M.corr < -0.99, 'measured ' + M.corr.toFixed(3));
+        ok('Mono fold of inverted mix collapses', M.monoDrop > 20 || !Number.isFinite(M.lufsMono), 'drop ' + M.monoDrop.toFixed(1) + ' dB');
+        ok('Score punishes inverted phase', M.categories.find(c => c.key === 'phase').score < 20,
+            'phase score ' + M.categories.find(c => c.key === 'phase').score.toFixed(0));
+    }
+
+    // 4. True peak — 11.025 kHz sine, 45° phase, amplitude 0.9
+    {
+        const fs = 44100, len = fs * 2;
+        const b = mk(len, fs);
+        const L = b.getChannelData(0), Rr = b.getChannelData(1);
+        for (let i = 0; i < len; i++) {
+            const v = 0.9 * Math.sin(2 * Math.PI * 11025 * i / fs + Math.PI / 4);
+            L[i] = v; Rr[i] = v;
+        }
+        const M = await analyzeBuffer(b, () => {});
+        const samplePeakLin = Math.pow(10, M.samplePeakDb / 20);
+        ok('Sample peak underestimates (≈0.636)', Math.abs(samplePeakLin - 0.6364) < 0.02, 'sample peak ' + samplePeakLin.toFixed(3));
+        ok('True peak recovers ≈0.90', Math.abs(Math.pow(10, M.truePeakDb / 20) - 0.9) < 0.04, 'true peak ' + Math.pow(10, M.truePeakDb / 20).toFixed(3));
+    }
+
+    // 5. Clipping
+    {
+        const fs = 48000, len = fs * 2;
+        const b = mk(len, fs);
+        const L = b.getChannelData(0), Rr = b.getChannelData(1);
+        for (let i = 0; i < len; i++) {
+            let v = 1.6 * Math.sin(2 * Math.PI * 100 * i / fs);
+            v = v > 1 ? 1 : v < -1 ? -1 : v;
+            L[i] = v; Rr[i] = v;
+        }
+        const M = await analyzeBuffer(b, () => {});
+        ok('Clipping detected', M.clipCount > 1000, M.clipCount + ' clipped samples, run ' + M.maxClipRun);
+    }
+
+    // 6. DC offset
+    {
+        const fs = 48000, len = fs;
+        const b = mk(len, fs);
+        const L = b.getChannelData(0), Rr = b.getChannelData(1);
+        for (let i = 0; i < len; i++) {
+            const v = 0.1 + 0.2 * Math.sin(2 * Math.PI * 200 * i / fs);
+            L[i] = v; Rr[i] = v;
+        }
+        const M = await analyzeBuffer(b, () => {});
+        ok('DC offset measured ≈0.10', Math.abs(M.dcOffset - 0.1) < 0.005, 'dc ' + M.dcOffset.toFixed(4));
+    }
+
+    // 7. Pink noise built in the frequency domain → tilt must be −3.01 dB/oct
+    {
+        const fs = 48000;
+        const N = 262144;                    // 2^18, ~5.5 s
+        const bigFft = new FFT(N);
+        const re = new Float64Array(N), im = new Float64Array(N);
+        let seed = 987654321;
+        const rnd = () => {
+            seed = (seed * 1664525 + 1013904223) >>> 0;
+            return seed / 4294967296;
+        };
+        // X[k] magnitude ∝ 1/sqrt(f)  =>  power density ∝ 1/f  =>  pink
+        for (let k = 1; k < N / 2; k++) {
+            const f = k * fs / N;
+            if (f < 10) continue;
+            const m = 1 / Math.sqrt(f);
+            const ph = rnd() * Math.PI * 2;
+            const a = m * Math.cos(ph), bq2 = m * Math.sin(ph);
+            re[k] = a; im[k] = bq2;
+            re[N - k] = a; im[N - k] = -bq2;
+        }
+        // inverse FFT via conj(FFT(conj(X)))/N
+        for (let k = 0; k < N; k++) im[k] = -im[k];
+        bigFft.transform(re, im);
+        for (let k = 0; k < N; k++) { re[k] = re[k] / N; }
+        let mx = 0;
+        for (let k = 0; k < N; k++) mx = Math.max(mx, Math.abs(re[k]));
+        const b = mk(N, fs);
+        const L = b.getChannelData(0), Rr = b.getChannelData(1);
+        for (let k = 0; k < N; k++) { const v = (re[k] / mx) * 0.4; L[k] = v; Rr[k] = v; }
+        const M = await analyzeBuffer(b, () => {});
+        ok('Pink noise tilt ≈ −3.01 dB/oct (±0.35)', Math.abs(M.tilt + 3.011) < 0.35, 'tilt ' + M.tilt.toFixed(2));
+        ok('Pink noise bands are flat vs their own trend', M.bands.every(x => Math.abs(x.dev) < 2),
+            'max |dev| ' + Math.max(...M.bands.map(x => Math.abs(x.dev))).toFixed(2) + ' dB');
+        // Guards the intercept bug: the roast engine's windows must agree with the band bars.
+        const wins = [[20, 60], [180, 500], [2500, 5000], [5500, 9000], [10000, 20000]];
+        const worstWin = Math.max(...wins.map(([a, b]) => Math.abs(nearestBand(M, a, b).dev)));
+        ok('Fix-engine windows use the same trend as the band bars', worstWin < 2.5,
+            'max window |dev| ' + worstWin.toFixed(2) + ' dB');
+    }
+
+    // 8. Silent file must not score like a real mix
+    {
+        const b = mk(48000, 48000);
+        const M = await analyzeBuffer(b, () => {});
+        ok('Silent file detected and scored 0', M.silent === true && M.score === 0, 'silent=' + M.silent + ', score ' + M.score);
+    }
+
+    const pass = R.filter(r => r.pass).length;
+    console.log('%c── AURA BEAT CRITIC SELF-TEST ──', 'color:#c084fc;font-weight:bold');
+    R.forEach(r => console.log((r.pass ? '%cPASS' : '%cFAIL') + '%c  ' + r.name + '  →  ' + r.detail,
+        r.pass ? 'color:#34d399;font-weight:bold' : 'color:#f87171;font-weight:bold', 'color:#9aa3b8'));
+    console.log((pass === R.length ? '%cALL PASS' : '%cFAILURES') + `%c  ${pass}/${R.length}`,
+        pass === R.length ? 'color:#34d399;font-weight:bold' : 'color:#f87171;font-weight:bold', 'color:#e8eaf2');
+
+    document.body.insertAdjacentHTML('afterbegin', `<div style="position:relative;z-index:99;max-width:900px;margin:0 auto 20px;padding:20px;background:#0d0d16;border:1px solid rgba(168,85,247,.3);border-radius:14px;font-family:monospace;font-size:13px">
+        <div style="color:#c084fc;font-weight:bold;margin-bottom:10px">SELF-TEST ${pass}/${R.length}</div>
+        ${R.map(r => `<div style="padding:3px 0;color:${r.pass ? '#34d399' : '#f87171'}">${r.pass ? '✓' : '✗'} ${r.name}<span style="color:#646c84"> — ${r.detail}</span></div>`).join('')}
+    </div>`);
+    return R;
+}
+
+/* ── boot ── */
+document.addEventListener('DOMContentLoaded', () => {
+    if (location.search.includes('selftest')) {
+        window.__auraApp = null;
+        selfTest().catch(e => console.error('SELFTEST CRASH', e));
+        return;
+    }
+    window.__auraApp = new App();
+});
+</script>
+</body>
+</html>
